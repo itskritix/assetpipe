@@ -204,28 +204,49 @@ const { data: apiKeys } = await supabase
     window.location.reload();
   });
 
+  // Hash function for API key (must match API middleware)
+  async function hashKey(key: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(key);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   // Create key form
   createKeyForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = (document.getElementById('key-name') as HTMLInputElement).value;
+    const submitBtn = createKeyForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'CREATING...';
 
     // Generate a random API key
     const key = 'ap_' + crypto.randomUUID().replace(/-/g, '');
     const keyPrefix = key.substring(0, 10);
 
+    // Hash the key for secure storage (API middleware hashes incoming keys to compare)
+    const keyHash = await hashKey(key);
+
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'CREATE KEY';
+      return;
+    }
 
     const { error } = await supabase.from('api_keys').insert({
       user_id: user.id,
       name,
-      key_hash: key, // In production, hash this!
+      key_hash: keyHash,
       key_prefix: keyPrefix,
       is_active: true
     });
 
     if (error) {
       alert('Failed to create API key: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'CREATE KEY';
       return;
     }
 

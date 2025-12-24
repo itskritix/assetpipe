@@ -174,6 +174,7 @@ export interface Database {
           id: string
           user_id: string
           key_hash: string
+          key_prefix: string | null
           name: string | null
           is_active: boolean
           request_count: number
@@ -184,6 +185,7 @@ export interface Database {
           id?: string
           user_id: string
           key_hash: string
+          key_prefix?: string | null
           name?: string | null
           is_active?: boolean
           request_count?: number
@@ -194,6 +196,7 @@ export interface Database {
           id?: string
           user_id?: string
           key_hash?: string
+          key_prefix?: string | null
           name?: string | null
           is_active?: boolean
           request_count?: number
