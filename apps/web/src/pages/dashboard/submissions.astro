@@ -11,7 +11,7 @@ if (!user) {
 
 const { data: submissions } = await supabase
   .from('submissions')
-  .select('id, company_name, company_domain, status, created_at, submission_files(id, format, variant)')
+  .select('id, company_name, company_domain, status, created_at, submission_files(id, format, variant_type, color_mode)')
   .eq('user_id', user.id)
   .order('created_at', { ascending: false });
 ---
@@ -74,7 +74,7 @@ const { data: submissions } = await supabase
               {sub.submission_files && sub.submission_files.length > 0 && (
                 <div class="submission-card__files">
                   {sub.submission_files.map(file => (
-                    <span class="file-tag">{file.format.toUpperCase()} - {file.variant.toUpperCase()}</span>
+                    <span class="file-tag">{file.format.toUpperCase()} / {file.variant_type.toUpperCase()} / {file.color_mode.toUpperCase()}</span>
                   ))}
                 </div>
               )}

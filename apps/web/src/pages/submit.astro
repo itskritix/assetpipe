@@ -68,7 +68,7 @@ import Layout from '../layouts/Layout.astro';
               LOGO FILES <span class="required">*</span>
             </label>
             <p class="field-hint">
-              UPLOAD SVG AND/OR PNG FILES. SVG IS PREFERRED FOR BEST QUALITY.
+              UPLOAD SVG AND/OR PNG FILES. SET THE VARIANT TYPE AND COLOR MODE FOR EACH FILE.
             </p>
 
             <div id="drop-zone" class="dropzone-brutal">
@@ -100,30 +100,6 @@ import Layout from '../layouts/Layout.astro';
             </div>
 
             <div id="file-list" class="file-list-brutal"></div>
-          </div>
-        </div>
-
-        <!-- VARIANT SELECTION -->
-        <div class="form-section">
-          <div class="form-section__header">
-            <span class="form-section__number">03</span>
-            <h2>LOGO VARIANT</h2>
-          </div>
-
-          <div class="form-field">
-            <label for="variant" class="label-brutal">
-              SELECT VARIANT TYPE
-            </label>
-            <div class="select-brutal-wrapper">
-              <select id="variant" name="variant" class="select-brutal">
-                <option value="primary">PRIMARY (FULL LOGO)</option>
-                <option value="icon">ICON ONLY</option>
-                <option value="wordmark">WORDMARK (TEXT ONLY)</option>
-                <option value="dark">DARK BACKGROUND VERSION</option>
-                <option value="light">LIGHT BACKGROUND VERSION</option>
-              </select>
-              <span class="select-arrow">↓</span>
-            </div>
           </div>
         </div>
 
@@ -219,7 +195,14 @@ import Layout from '../layouts/Layout.astro';
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
   const authNotice = document.getElementById('auth-notice');
 
-  let selectedFiles: File[] = [];
+  interface FileWithVariant {
+    file: File;
+    variantType: string;
+    colorMode: string;
+    previewUrl?: string;
+  }
+
+  let selectedFiles: FileWithVariant[] = [];
   let currentUser: { id: string } | null = null;
   let isSubmitting = false;
 
@@ -256,7 +239,8 @@ import Layout from '../layouts/Layout.astro';
     if (files) handleFiles(files);
   });
 
-  dropZone?.addEventListener('click', () => {
+  dropZone?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.dropzone-btn')) return;
     fileInput?.click();
   });
 
@@ -268,7 +252,14 @@ import Layout from '../layouts/Layout.astro';
     for (const file of Array.from(files)) {
       if (file.type === 'image/svg+xml' || file.type === 'image/png') {
         if (file.size <= 5 * 1024 * 1024) {
-          selectedFiles.push(file);
+          const isFirst = selectedFiles.length === 0;
+          const fileWithVariant: FileWithVariant = {
+            file,
+            variantType: isFirst ? 'primary' : 'icon',
+            colorMode: 'color',
+            previewUrl: URL.createObjectURL(file),
+          };
+          selectedFiles.push(fileWithVariant);
         } else {
           alert(`${file.name} is too large. Max size is 5MB.`);
         }
@@ -281,23 +272,72 @@ import Layout from '../layouts/Layout.astro';
 
   function renderFileList() {
     if (!fileList) return;
-    fileList.innerHTML = selectedFiles.map((file, index) => `
-      <div class="file-item-brutal">
-        <div class="file-item__info">
-          <span class="file-item__type">${file.name.split('.').pop()?.toUpperCase()}</span>
-          <span class="file-item__name">${file.name}</span>
-          <span class="file-item__size">${(file.size / 1024).toFixed(1)} KB</span>
+
+    if (selectedFiles.length === 0) {
+      fileList.innerHTML = '';
+      return;
+    }
+
+    fileList.innerHTML = selectedFiles.map((item, index) => `
+      <div class="file-item-brutal file-item-brutal--expanded" data-index="${index}">
+        <div class="file-item__preview">
+          <img src="${item.previewUrl}" alt="${item.file.name}" />
         </div>
-        <button type="button" data-index="${index}" class="file-item__remove">
-          REMOVE
-        </button>
+        <div class="file-item__details">
+          <div class="file-item__header">
+            <span class="file-item__type">${item.file.name.split('.').pop()?.toUpperCase()}</span>
+            <span class="file-item__name">${item.file.name}</span>
+            <span class="file-item__size">${(item.file.size / 1024).toFixed(1)} KB</span>
+          </div>
+          <div class="file-item__variants">
+            <div class="file-item__select">
+              <label>TYPE</label>
+              <select class="select-brutal select-brutal--small variant-type-select" data-index="${index}">
+                <option value="primary" ${item.variantType === 'primary' ? 'selected' : ''}>PRIMARY</option>
+                <option value="icon" ${item.variantType === 'icon' ? 'selected' : ''}>ICON</option>
+                <option value="wordmark" ${item.variantType === 'wordmark' ? 'selected' : ''}>WORDMARK</option>
+                <option value="horizontal" ${item.variantType === 'horizontal' ? 'selected' : ''}>HORIZONTAL</option>
+                <option value="stacked" ${item.variantType === 'stacked' ? 'selected' : ''}>STACKED</option>
+              </select>
+            </div>
+            <div class="file-item__select">
+              <label>COLOR</label>
+              <select class="select-brutal select-brutal--small color-mode-select" data-index="${index}">
+                <option value="color" ${item.colorMode === 'color' ? 'selected' : ''}>FULL COLOR</option>
+                <option value="dark" ${item.colorMode === 'dark' ? 'selected' : ''}>DARK BG</option>
+                <option value="light" ${item.colorMode === 'light' ? 'selected' : ''}>LIGHT BG</option>
+                <option value="mono-black" ${item.colorMode === 'mono-black' ? 'selected' : ''}>MONO BLACK</option>
+                <option value="mono-white" ${item.colorMode === 'mono-white' ? 'selected' : ''}>MONO WHITE</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button type="button" data-index="${index}" class="file-item__remove">×</button>
       </div>
     `).join('');
+
+    // Attach event listeners for variant selects
+    document.querySelectorAll('.variant-type-select').forEach((select) => {
+      select.addEventListener('change', (e) => {
+        const index = parseInt((e.target as HTMLSelectElement).dataset.index || '0');
+        selectedFiles[index].variantType = (e.target as HTMLSelectElement).value;
+      });
+    });
+
+    document.querySelectorAll('.color-mode-select').forEach((select) => {
+      select.addEventListener('change', (e) => {
+        const index = parseInt((e.target as HTMLSelectElement).dataset.index || '0');
+        selectedFiles[index].colorMode = (e.target as HTMLSelectElement).value;
+      });
+    });
 
     document.querySelectorAll('.file-item__remove').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const index = parseInt((e.target as HTMLElement).dataset.index || '0');
+        if (selectedFiles[index].previewUrl) {
+          URL.revokeObjectURL(selectedFiles[index].previewUrl!);
+        }
         selectedFiles.splice(index, 1);
         renderFileList();
       });
@@ -323,7 +363,6 @@ import Layout from '../layouts/Layout.astro';
 
     const companyName = (document.getElementById('company-name') as HTMLInputElement).value;
     const companyDomain = (document.getElementById('company-domain') as HTMLInputElement).value;
-    const variant = (document.getElementById('variant') as HTMLSelectElement).value;
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'SUBMITTING...';
@@ -342,14 +381,14 @@ import Layout from '../layouts/Layout.astro';
 
       if (subError) throw subError;
 
-      // Upload files and create file records
-      for (const file of selectedFiles) {
-        const fileExt = file.name.split('.').pop();
+      // Upload files and create file records with per-file variants
+      for (const item of selectedFiles) {
+        const fileExt = item.file.name.split('.').pop();
         const fileName = `${currentUser.id}/${submission.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('submissions')
-          .upload(fileName, file);
+          .upload(fileName, item.file);
 
         if (uploadError) throw uploadError;
 
@@ -359,11 +398,17 @@ import Layout from '../layouts/Layout.astro';
             submission_id: submission.id,
             storage_path: fileName,
             format: fileExt,
-            variant: variant,
+            variant_type: item.variantType,
+            color_mode: item.colorMode,
           });
 
         if (fileError) throw fileError;
       }
+
+      // Clean up preview URLs
+      selectedFiles.forEach(item => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
 
       alert('SUBMISSION SUCCESSFUL! YOUR LOGO WILL BE REVIEWED BY OUR TEAM.');
       window.location.href = '/dashboard/submissions';

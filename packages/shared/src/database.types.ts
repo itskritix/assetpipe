@@ -50,6 +50,8 @@ export interface Database {
           company_id: string
           format: string
           variant: string
+          variant_type: string
+          color_mode: string
           storage_path: string
           width: number | null
           height: number | null
@@ -61,6 +63,8 @@ export interface Database {
           company_id: string
           format: string
           variant?: string
+          variant_type?: string
+          color_mode?: string
           storage_path: string
           width?: number | null
           height?: number | null
@@ -72,6 +76,8 @@ export interface Database {
           company_id?: string
           format?: string
           variant?: string
+          variant_type?: string
+          color_mode?: string
           storage_path?: string
           width?: number | null
           height?: number | null
@@ -150,6 +156,8 @@ export interface Database {
           storage_path: string
           format: string | null
           variant: string | null
+          variant_type: string
+          color_mode: string
           created_at: string
         }
         Insert: {
@@ -158,6 +166,8 @@ export interface Database {
           storage_path: string
           format?: string | null
           variant?: string | null
+          variant_type?: string
+          color_mode?: string
           created_at?: string
         }
         Update: {
@@ -166,6 +176,8 @@ export interface Database {
           storage_path?: string
           format?: string | null
           variant?: string | null
+          variant_type?: string
+          color_mode?: string
           created_at?: string
         }
       }

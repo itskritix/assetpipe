@@ -23,7 +23,7 @@ const status = Astro.url.searchParams.get('status') || 'pending';
 
 const { data: submissions } = await supabase
   .from('submissions')
-  .select('id, company_name, company_domain, status, created_at, user_id, submission_files(id, format, variant, storage_path)')
+  .select('id, company_name, company_domain, status, created_at, user_id, submission_files(id, format, variant_type, color_mode, storage_path)')
   .eq('status', status)
   .order('created_at', { ascending: true });
 
@@ -97,8 +97,12 @@ const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
               <div class="review-card__files">
                 {sub.submission_files?.map(file => (
                   <div class="review-file">
-                    <img src={file.storage_path} alt={file.variant} class="review-preview" />
-                    <span class="file-meta">{file.format.toUpperCase()} - {file.variant.toUpperCase()}</span>
+                    <img src={file.storage_path} alt={`${file.variant_type} ${file.color_mode}`} class="review-preview" />
+                    <div class="file-meta">
+                      <span class="file-format">{file.format.toUpperCase()}</span>
+                      <span class="file-variant">{file.variant_type.toUpperCase()}</span>
+                      <span class="file-color">{file.color_mode.toUpperCase()}</span>
+                    </div>
                   </div>
                 ))}
               </div>

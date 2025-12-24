@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase';
 interface Logo {
   id: string;
   format: string;
-  variant: string;
+  variant_type: string;
+  color_mode: string;
   storage_path: string;
 }
 
@@ -30,7 +31,8 @@ const { data } = await supabase
     logos (
       id,
       format,
-      variant,
+      variant_type,
+      color_mode,
       storage_path
     )
   `)

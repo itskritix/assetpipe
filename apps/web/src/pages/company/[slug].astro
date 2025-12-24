@@ -5,7 +5,8 @@ import { supabase } from '../../lib/supabase';
 interface Logo {
   id: string;
   format: string;
-  variant: string;
+  variant_type: string;
+  color_mode: string;
   storage_path: string;
   width: number | null;
   height: number | null;
@@ -51,7 +52,8 @@ const { data } = await supabase
     logos (
       id,
       format,
-      variant,
+      variant_type,
+      color_mode,
       storage_path,
       width,
       height,
@@ -134,20 +136,21 @@ const brandKit = company.brand_kits?.[0];
     {company.logos && company.logos.length > 0 ? (
       <div class="logos-grid-brutal">
         {company.logos.map((logo, index) => (
-          <div class={`logo-item-brutal ${index === 0 ? 'logo-item-brutal--primary' : ''}`}>
+          <div class={`logo-item-brutal ${logo.variant_type === 'primary' ? 'logo-item-brutal--primary' : ''}`}>
             <div class="logo-item__preview">
               <img
                 src={logo.storage_path}
-                alt={`${company.name} ${logo.variant}`}
+                alt={`${company.name} ${logo.variant_type} ${logo.color_mode}`}
                 loading="lazy"
               />
             </div>
 
             <div class="logo-item__details">
               <div class="logo-item__info">
-                <h3 class="logo-item__variant">{logo.variant.toUpperCase()}</h3>
+                <h3 class="logo-item__variant">{logo.variant_type.toUpperCase()}</h3>
                 <div class="logo-item__specs">
                   <span class="spec-tag">{logo.format.toUpperCase()}</span>
+                  <span class="spec-tag spec-tag--mode">{logo.color_mode.toUpperCase()}</span>
                   {logo.width && logo.height && (
                     <span class="spec-dim">{logo.width} × {logo.height}</span>
                   )}
@@ -157,7 +160,7 @@ const brandKit = company.brand_kits?.[0];
 
               <a
                 href={logo.storage_path}
-                download={`${company.slug}-${logo.variant}.${logo.format}`}
+                download={`${company.slug}-${logo.variant_type}-${logo.color_mode}.${logo.format}`}
                 class="btn-brutal btn-brutal--yellow logo-download"
               >
                 DOWNLOAD →
