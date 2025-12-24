@@ -1,10 +1,13 @@
 ---
+import '../styles/brutalist.css';
+
 interface Props {
   title: string;
   description?: string;
+  theme?: 'light' | 'dark';
 }
 
-const { title, description = 'Open-source platform for company logos and brand assets' } = Astro.props;
+const { title, description = 'Open-source platform for company logos and brand assets', theme = 'light' } = Astro.props;
 ---
 
 <!doctype html>
@@ -14,60 +17,353 @@ const { title, description = 'Open-source platform for company logos and brand a
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title} | AssetPipe</title>
+    <title>{title} | ASSETPIPE</title>
   </head>
-  <body class="min-h-screen bg-gray-50 text-gray-900">
-    <header class="border-b bg-white">
-      <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <a href="/" class="text-xl font-bold text-brand-600">AssetPipe</a>
-        <div class="flex items-center gap-6">
-          <a href="/browse" class="text-gray-600 hover:text-gray-900">Browse</a>
-          <a href="/submit" class="text-gray-600 hover:text-gray-900">Submit</a>
-          <a href="/docs" class="text-gray-600 hover:text-gray-900">API Docs</a>
-          <a href="/admin" id="admin-link" class="hidden text-gray-600 hover:text-gray-900">Admin</a>
-          <div id="auth-buttons">
-            <a
-              href="/login"
-              id="login-link"
-              class="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
-            >
-              Sign In
-            </a>
-            <a
-              href="/dashboard"
-              id="dashboard-link"
-              class="hidden rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
-            >
-              Dashboard
-            </a>
-          </div>
+  <body class={theme === 'dark' ? 'theme-dark' : ''}>
+    <!-- BRUTAL HEADER -->
+    <header class="header-brutal">
+      <nav class="nav-brutal">
+        <a href="/" class="logo-brutal">
+          <span class="logo-text">ASSET</span>
+          <span class="logo-accent">PIPE</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="/browse" class="nav-link">
+            <span class="nav-link__number">01</span>
+            <span class="nav-link__text">BROWSE</span>
+          </a>
+          <a href="/submit" class="nav-link">
+            <span class="nav-link__number">02</span>
+            <span class="nav-link__text">SUBMIT</span>
+          </a>
+          <a href="/docs" class="nav-link">
+            <span class="nav-link__number">03</span>
+            <span class="nav-link__text">API</span>
+          </a>
+          <a href="/admin" id="admin-link" class="nav-link nav-link--hidden">
+            <span class="nav-link__number">04</span>
+            <span class="nav-link__text">ADMIN</span>
+          </a>
+        </div>
+
+        <div class="nav-auth">
+          <a href="/login" id="login-link" class="btn-brutal btn-brutal--outline">
+            ENTER →
+          </a>
+          <a href="/dashboard" id="dashboard-link" class="btn-brutal nav-link--hidden">
+            DASHBOARD
+          </a>
         </div>
       </nav>
+
+      <!-- MARQUEE STRIP -->
+      <div class="marquee-brutal">
+        <div class="marquee-brutal__content">
+          FREE LOGOS • OPEN SOURCE • COMMUNITY DRIVEN • FREE LOGOS • OPEN SOURCE • COMMUNITY DRIVEN • FREE LOGOS • OPEN SOURCE • COMMUNITY DRIVEN • FREE LOGOS • OPEN SOURCE • COMMUNITY DRIVEN •&nbsp;
+        </div>
+      </div>
     </header>
+
+    <!-- MAIN CONTENT -->
     <main>
       <slot />
     </main>
-    <footer class="mt-auto border-t bg-white py-8">
-      <div class="mx-auto max-w-7xl px-4 text-center text-gray-500">
-        <p>AssetPipe - Open Source Brand Assets Platform</p>
-        <p class="mt-2 text-sm">
-          <a href="https://github.com/your-repo/assetpipe" class="hover:text-brand-600">
-            GitHub
-          </a>
-          {' '}&middot;{' '}
-          <a href="/api" class="hover:text-brand-600">API</a>
-          {' '}&middot;{' '}
-          <a href="/privacy" class="hover:text-brand-600">Privacy</a>
-        </p>
+
+    <!-- BRUTAL FOOTER -->
+    <footer class="footer-brutal">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h2 class="footer-logo">ASSET<br/>PIPE</h2>
+          <p class="footer-tagline">OPEN SOURCE<br/>BRAND ASSETS</p>
+        </div>
+
+        <div class="footer-grid">
+          <div class="footer-col">
+            <h3 class="footer-heading">NAVIGATE</h3>
+            <ul class="footer-list">
+              <li><a href="/browse">Browse Logos</a></li>
+              <li><a href="/submit">Submit Logo</a></li>
+              <li><a href="/docs">API Documentation</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h3 class="footer-heading">CONNECT</h3>
+            <ul class="footer-list">
+              <li><a href="https://github.com/your-repo/assetpipe" target="_blank">GitHub ↗</a></li>
+              <li><a href="/privacy">Privacy Policy</a></li>
+              <li><a href="/terms">Terms of Use</a></li>
+            </ul>
+          </div>
+          <div class="footer-col footer-col--highlight">
+            <h3 class="footer-heading">BUILT WITH</h3>
+            <p class="footer-tech">ASTRO + CLOUDFLARE + SUPABASE</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2024 ASSETPIPE — ALL ASSETS FREE TO USE</p>
+        <p class="footer-coords">51.5074° N, 0.1278° W</p>
       </div>
     </footer>
   </body>
 </html>
 
 <style is:global>
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+  /* HEADER STYLES */
+  .header-brutal {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--brutal-cream);
+    border-bottom: var(--border-thick) solid var(--brutal-black);
+  }
+
+  .nav-brutal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+
+  .logo-brutal {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    letter-spacing: 0.05em;
+    display: flex;
+    gap: 0;
+    text-decoration: none;
+  }
+
+  .logo-text {
+    color: var(--brutal-black);
+  }
+
+  .logo-accent {
+    color: var(--brutal-white);
+    background: var(--brutal-black);
+    padding: 0 0.25rem;
+    margin-left: 2px;
+  }
+
+  .logo-brutal:hover .logo-accent {
+    background: var(--brutal-red);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: var(--space-lg);
+  }
+
+  .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-decoration: none;
+    transition: transform 0.1s ease;
+  }
+
+  .nav-link:hover {
+    transform: translateY(-2px);
+  }
+
+  .nav-link__number {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: #888;
+    letter-spacing: 0.1em;
+  }
+
+  .nav-link__text {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--brutal-black);
+    letter-spacing: 0.05em;
+  }
+
+  .nav-link:hover .nav-link__text {
+    color: var(--brutal-red);
+  }
+
+  .nav-link--hidden {
+    display: none !important;
+  }
+
+  .nav-auth {
+    display: flex;
+    gap: var(--space-md);
+  }
+
+  /* FOOTER STYLES */
+  .footer-brutal {
+    background: var(--brutal-black);
+    color: var(--brutal-white);
+    margin-top: auto;
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-xl);
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: var(--space-xxl) var(--space-lg);
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .footer-logo {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    line-height: 0.85;
+    letter-spacing: 0.05em;
+  }
+
+  .footer-tagline {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    opacity: 0.6;
+    line-height: 1.6;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+  }
+
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .footer-col--highlight {
+    background: var(--brutal-yellow);
+    color: var(--brutal-black);
+    padding: var(--space-lg);
+    margin: calc(var(--space-lg) * -1);
+  }
+
+  .footer-heading {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
+    text-transform: uppercase;
+  }
+
+  .footer-col--highlight .footer-heading {
+    opacity: 1;
+  }
+
+  .footer-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .footer-list a {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--brutal-white);
+    text-decoration: none;
+    transition: opacity 0.1s ease;
+  }
+
+  .footer-list a:hover {
+    opacity: 0.6;
+    color: var(--brutal-white);
+  }
+
+  .footer-tech {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+  }
+
+  .footer-coords {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* DARK THEME VARIANT */
+  .theme-dark {
+    background: var(--brutal-black);
+    color: var(--brutal-white);
+  }
+
+  .theme-dark .header-brutal {
+    background: var(--brutal-black);
+    border-color: var(--brutal-white);
+  }
+
+  .theme-dark .logo-text {
+    color: var(--brutal-white);
+  }
+
+  .theme-dark .logo-accent {
+    background: var(--brutal-white);
+    color: var(--brutal-black);
+  }
+
+  .theme-dark .nav-link__text {
+    color: var(--brutal-white);
+  }
+
+  .theme-dark .marquee-brutal {
+    background: var(--brutal-yellow);
+    color: var(--brutal-black);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .nav-links {
+      display: none;
+    }
+
+    .footer-content {
+      grid-template-columns: 1fr;
+    }
+
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .footer-logo {
+      font-size: 2.5rem;
+    }
+  }
 </style>
 
 <script>
@@ -85,15 +381,14 @@ const { title, description = 'Open-source platform for company logos and brand a
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-    loginLink?.classList.add('hidden');
-    dashboardLink?.classList.remove('hidden');
+    loginLink?.classList.add('nav-link--hidden');
+    dashboardLink?.classList.remove('nav-link--hidden');
 
-    // Show admin link for admins
     if (isAdmin(user.email)) {
-      adminLink?.classList.remove('hidden');
+      adminLink?.classList.remove('nav-link--hidden');
     }
   } else {
-    loginLink?.classList.remove('hidden');
-    dashboardLink?.classList.add('hidden');
+    loginLink?.classList.remove('nav-link--hidden');
+    dashboardLink?.classList.add('nav-link--hidden');
   }
 </script>

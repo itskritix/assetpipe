@@ -2,98 +2,176 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Sign In">
-  <div class="mx-auto max-w-md px-4 py-12">
-    <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-gray-900">Sign In</h1>
-      <p class="mt-2 text-gray-600">
-        Sign in to submit logos and manage your API keys.
-      </p>
-    </div>
+<Layout title="Login">
+  <section class="auth-page">
+    <div class="auth-container">
+      <div class="auth-branding">
+        <div class="auth-branding__content">
+          <div class="brand-logo-large">
+            <span class="brand-letter">A</span>
+            <span class="brand-letter brand-letter--accent">P</span>
+          </div>
+          <h1>ASSET<br/>PIPE</h1>
+          <p>OPEN-SOURCE LOGO LIBRARY</p>
+          <div class="auth-stats">
+            <div class="auth-stat">
+              <span class="auth-stat__number">10K+</span>
+              <span class="auth-stat__label">LOGOS</span>
+            </div>
+            <div class="auth-stat">
+              <span class="auth-stat__number">5K+</span>
+              <span class="auth-stat__label">BRANDS</span>
+            </div>
+            <div class="auth-stat">
+              <span class="auth-stat__number">FREE</span>
+              <span class="auth-stat__label">FOREVER</span>
+            </div>
+          </div>
+          <div class="auth-features">
+            <div class="auth-feature">
+              <span class="feature-icon">→</span>
+              <span>SUBMIT LOGOS</span>
+            </div>
+            <div class="auth-feature">
+              <span class="feature-icon">→</span>
+              <span>TRACK SUBMISSIONS</span>
+            </div>
+            <div class="auth-feature">
+              <span class="feature-icon">→</span>
+              <span>API ACCESS</span>
+            </div>
+          </div>
+        </div>
+        <div class="auth-decoration"></div>
+        <div class="auth-decoration auth-decoration--2"></div>
+        <div class="auth-grid-bg"></div>
+      </div>
 
-    <div class="rounded-xl border bg-white p-6 shadow-sm">
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            placeholder="you@example.com"
-            class="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-          />
+      <div class="auth-form-container">
+        <div class="auth-tabs">
+          <button class="auth-tab auth-tab--active" data-tab="login">LOGIN</button>
+          <button class="auth-tab" data-tab="signup">SIGN UP</button>
         </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            minlength="6"
-            placeholder="••••••••"
-            class="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-          />
-        </div>
+        <form id="login-form" class="auth-form">
+          <div class="form-field">
+            <label for="login-email" class="label-brutal">EMAIL</label>
+            <input type="email" id="login-email" name="email" required placeholder="YOUR@EMAIL.COM" class="input-brutal" />
+          </div>
 
-        <div id="error-message" class="hidden rounded-lg bg-red-50 p-3 text-sm text-red-700"></div>
+          <div class="form-field">
+            <label for="login-password" class="label-brutal">PASSWORD</label>
+            <input type="password" id="login-password" name="password" required placeholder="********" class="input-brutal" />
+          </div>
 
-        <button
-          type="submit"
-          id="submit-btn"
-          class="w-full rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Sign In
-        </button>
-      </form>
+          <div class="form-row">
+            <label class="checkbox-brutal">
+              <input type="checkbox" name="remember" />
+              <span class="checkmark"></span>
+              <span>REMEMBER ME</span>
+            </label>
+            <a href="/forgot-password" class="link-brutal">FORGOT PASSWORD?</a>
+          </div>
 
-      <div class="mt-6 text-center text-sm text-gray-600">
-        Don't have an account?
-        <a href="/signup" class="text-brand-600 hover:underline">Sign up</a>
+          <button type="submit" class="btn-brutal btn-brutal--yellow auth-submit">LOGIN</button>
+        </form>
+
+        <form id="signup-form" class="auth-form hidden">
+          <div class="form-field">
+            <label for="signup-name" class="label-brutal">NAME</label>
+            <input type="text" id="signup-name" name="name" required placeholder="YOUR NAME" class="input-brutal" />
+          </div>
+
+          <div class="form-field">
+            <label for="signup-email" class="label-brutal">EMAIL</label>
+            <input type="email" id="signup-email" name="email" required placeholder="YOUR@EMAIL.COM" class="input-brutal" />
+          </div>
+
+          <div class="form-field">
+            <label for="signup-password" class="label-brutal">PASSWORD</label>
+            <input type="password" id="signup-password" name="password" required placeholder="MIN 8 CHARACTERS" class="input-brutal" />
+          </div>
+
+          <div class="form-field">
+            <label class="checkbox-brutal">
+              <input type="checkbox" name="terms" required />
+              <span class="checkmark"></span>
+              <span>I AGREE TO THE <a href="/terms" class="link-brutal">TERMS</a></span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-brutal btn-brutal--yellow auth-submit">CREATE ACCOUNT</button>
+        </form>
       </div>
     </div>
-  </div>
+  </section>
 </Layout>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { createBrowserClient } from '@supabase/ssr';
 
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
-  const form = document.getElementById('login-form');
-  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
-  const errorMessage = document.getElementById('error-message');
+  const tabs = document.querySelectorAll('.auth-tab');
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
 
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const email = (document.getElementById('email') as HTMLInputElement).value;
-    const password = (document.getElementById('password') as HTMLInputElement).value;
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Signing in...';
-    errorMessage?.classList.add('hidden');
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('auth-tab--active'));
+      tab.classList.add('auth-tab--active');
+      if ((tab as HTMLElement).dataset.tab === 'login') {
+        loginForm?.classList.remove('hidden');
+        signupForm?.classList.add('hidden');
+      } else {
+        loginForm?.classList.add('hidden');
+        signupForm?.classList.remove('hidden');
+      }
     });
+  });
+
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = loginForm.querySelector('.auth-submit') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'LOGGING IN...';
+
+    const email = (document.getElementById('login-email') as HTMLInputElement).value;
+    const password = (document.getElementById('login-password') as HTMLInputElement).value;
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      errorMessage!.textContent = error.message;
-      errorMessage?.classList.remove('hidden');
+      alert(error.message);
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign In';
+      submitBtn.textContent = 'LOGIN';
     } else {
       window.location.href = '/dashboard';
+    }
+  });
+
+  signupForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = signupForm.querySelector('.auth-submit') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'CREATING...';
+
+    const name = (document.getElementById('signup-name') as HTMLInputElement).value;
+    const email = (document.getElementById('signup-email') as HTMLInputElement).value;
+    const password = (document.getElementById('signup-password') as HTMLInputElement).value;
+
+    const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
+
+    if (error) {
+      alert(error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'CREATE ACCOUNT';
+    } else {
+      alert('CHECK YOUR EMAIL FOR CONFIRMATION LINK');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'CREATE ACCOUNT';
     }
   });
 </script>

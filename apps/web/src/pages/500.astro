@@ -2,28 +2,32 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Server Error">
-  <div class="flex min-h-[60vh] items-center justify-center px-4">
-    <div class="text-center">
-      <h1 class="text-9xl font-bold text-red-500">500</h1>
-      <h2 class="mt-4 text-2xl font-semibold text-gray-900">Server Error</h2>
-      <p class="mt-2 text-gray-600">
-        Something went wrong on our end. Please try again later.
-      </p>
-      <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-        <a
-          href="/"
-          class="rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700"
-        >
-          Go Home
-        </a>
-        <button
-          onclick="window.location.reload()"
-          class="rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 transition hover:bg-gray-50"
-        >
-          Try Again
-        </button>
+<Layout title="500 - Server Error">
+  <section class="error-page error-page--dark">
+    <div class="error-content">
+      <div class="error-code">
+        <span class="error-number">5</span>
+        <span class="error-number error-number--accent">0</span>
+        <span class="error-number">0</span>
+      </div>
+
+      <div class="error-info">
+        <span class="tag-brutal tag-brutal--yellow">SERVER ERROR</span>
+        <h1>SOMETHING BROKE</h1>
+        <p>Our servers encountered an unexpected error. We're working on fixing it.</p>
+
+        <div class="error-actions">
+          <a href="/" class="btn-brutal btn-brutal--yellow">
+            GO HOME →
+          </a>
+          <button onclick="location.reload()" class="btn-brutal btn-brutal--outline">
+            TRY AGAIN
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+
+    <div class="error-decoration error-decoration--1"></div>
+    <div class="error-decoration error-decoration--2"></div>
+  </section>
 </Layout>

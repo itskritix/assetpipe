@@ -3,103 +3,200 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Home">
-  <section class="bg-gradient-to-b from-brand-50 to-white py-20">
-    <div class="mx-auto max-w-7xl px-4 text-center">
-      <h1 class="text-5xl font-bold text-gray-900">
-        Company Logos &<br />Brand Assets
+  <!-- HERO SECTION - MASSIVE TYPOGRAPHY -->
+  <section class="hero-brutal">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="sticker-brutal uppercase">FREE DOWNLOAD</span>
+      </div>
+
+      <h1 class="hero-title" data-text="LOGOS">
+        <span class="hero-line">COMPANY</span>
+        <span class="hero-line hero-line--accent">LOGOS</span>
+        <span class="hero-line">&amp; ASSETS</span>
       </h1>
-      <p class="mx-auto mt-6 max-w-2xl text-xl text-gray-600">
-        Free, open-source library of company logos. Download SVG and PNG files or access via API.
-        Community-driven and always growing.
-      </p>
-      <div class="mt-10 flex items-center justify-center gap-4">
-        <a
-          href="/browse"
-          class="rounded-lg bg-brand-600 px-6 py-3 text-lg font-medium text-white hover:bg-brand-700"
-        >
-          Browse Logos
+
+      <div class="hero-grid">
+        <div class="hero-description">
+          <p>
+            Open-source library of company logos.<br/>
+            Download SVG and PNG files.<br/>
+            Access via API. Community-driven.
+          </p>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-brutal">
+            <span class="stat-number">2,500+</span>
+            <span class="stat-label">LOGOS</span>
+          </div>
+          <div class="stat-brutal">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">COMPANIES</span>
+          </div>
+          <div class="stat-brutal">
+            <span class="stat-number">FREE</span>
+            <span class="stat-label">FOREVER</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a href="/browse" class="btn-brutal btn-brutal--yellow">
+          BROWSE ALL LOGOS →
         </a>
-        <a
-          href="/docs"
-          class="rounded-lg border border-gray-300 bg-white px-6 py-3 text-lg font-medium text-gray-700 hover:bg-gray-50"
-        >
-          API Documentation
+        <a href="/docs" class="btn-brutal btn-brutal--outline">
+          READ API DOCS
         </a>
       </div>
     </div>
+
+    <!-- DECORATIVE ELEMENTS -->
+    <div class="hero-decoration hero-decoration--1"></div>
+    <div class="hero-decoration hero-decoration--2"></div>
   </section>
 
-  <section class="py-16">
-    <div class="mx-auto max-w-7xl px-4">
-      <div class="mb-12 text-center">
-        <h2 class="text-3xl font-bold text-gray-900">Search for a brand</h2>
-        <div class="mx-auto mt-6 max-w-xl">
-          <form action="/browse" method="get" class="flex gap-2">
-            <input
-              type="text"
-              name="q"
-              placeholder="Search companies..."
-              class="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-            />
-            <button
-              type="submit"
-              class="rounded-lg bg-brand-600 px-6 py-3 text-white hover:bg-brand-700"
-            >
-              Search
-            </button>
-          </form>
+  <!-- SEARCH SECTION - RAW AND EXPOSED -->
+  <section class="search-brutal">
+    <div class="search-container">
+      <div class="search-label">
+        <span class="tag-brutal tag-brutal--yellow">QUICK SEARCH</span>
+        <h2>FIND ANY BRAND</h2>
+      </div>
+
+      <form action="/browse" method="get" class="search-form">
+        <input
+          type="text"
+          name="q"
+          placeholder="SEARCH COMPANIES..."
+          class="input-brutal search-input"
+          autocomplete="off"
+        />
+        <button type="submit" class="btn-brutal search-btn">
+          SEARCH →
+        </button>
+      </form>
+
+      <div class="search-hints">
+        <span class="hint-label">TRY:</span>
+        <a href="/browse?q=google" class="hint-tag">Google</a>
+        <a href="/browse?q=apple" class="hint-tag">Apple</a>
+        <a href="/browse?q=spotify" class="hint-tag">Spotify</a>
+        <a href="/browse?q=netflix" class="hint-tag">Netflix</a>
+        <a href="/browse?q=stripe" class="hint-tag">Stripe</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS - NUMBERED GRID -->
+  <section class="section-brutal">
+    <div class="container-brutal">
+      <div class="section-header">
+        <span class="tag-brutal">HOW IT WORKS</span>
+        <h2>THREE STEPS.<br/>ZERO FRICTION.</h2>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-brutal">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3>SEARCH</h3>
+            <p>Find any company logo by name or domain. Our library is constantly growing with community contributions.</p>
+          </div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="step-brutal step-brutal--highlighted">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3>DOWNLOAD</h3>
+            <p>Get logos in SVG and PNG formats. Multiple variants available including icons, wordmarks, dark and light versions.</p>
+          </div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="step-brutal">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3>INTEGRATE</h3>
+            <p>Use our REST API for programmatic access. Perfect for building integrations, automations, and applications.</p>
+          </div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="bg-gray-100 py-16">
-    <div class="mx-auto max-w-7xl px-4">
-      <h2 class="mb-12 text-center text-3xl font-bold text-gray-900">How It Works</h2>
-      <div class="grid gap-8 md:grid-cols-3">
-        <div class="rounded-xl bg-white p-6 shadow-sm">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100 text-brand-600">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <h3 class="mb-2 text-xl font-semibold">Search</h3>
-          <p class="text-gray-600">Find any company logo by name or domain. Our library is constantly growing.</p>
+  <!-- API PREVIEW - CODE BLOCK -->
+  <section class="api-brutal">
+    <div class="container-brutal">
+      <div class="api-grid">
+        <div class="api-info">
+          <span class="tag-brutal tag-brutal--green">FOR DEVELOPERS</span>
+          <h2>REST API<br/>ACCESS</h2>
+          <p>Programmatic access to all logos. Simple authentication. Generous rate limits. Built for developers.</p>
+          <a href="/docs" class="btn-brutal">
+            FULL DOCUMENTATION →
+          </a>
         </div>
-        <div class="rounded-xl bg-white p-6 shadow-sm">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100 text-brand-600">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+
+        <div class="api-preview">
+          <div class="code-header">
+            <span class="code-dot"></span>
+            <span class="code-dot"></span>
+            <span class="code-dot"></span>
+            <span class="code-filename">api-example.sh</span>
           </div>
-          <h3 class="mb-2 text-xl font-semibold">Download</h3>
-          <p class="text-gray-600">Get logos in SVG and PNG formats. Multiple variants available including icons and wordmarks.</p>
-        </div>
-        <div class="rounded-xl bg-white p-6 shadow-sm">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100 text-brand-600">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-          </div>
-          <h3 class="mb-2 text-xl font-semibold">API Access</h3>
-          <p class="text-gray-600">Programmatic access to all logos. Perfect for building integrations and automations.</p>
+          <pre class="code-block"><code><span class="code-comment"># Fetch company logos</span>
+curl -X GET \
+  "https://api.assetpipe.com/v1/companies/google/logos" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+<span class="code-comment"># Response</span>
+{'{'}
+  <span class="code-key">"company"</span>: <span class="code-string">"Google"</span>,
+  <span class="code-key">"logos"</span>: [
+    {'{'}
+      <span class="code-key">"format"</span>: <span class="code-string">"svg"</span>,
+      <span class="code-key">"variant"</span>: <span class="code-string">"primary"</span>,
+      <span class="code-key">"url"</span>: <span class="code-string">"..."</span>
+    {'}'}
+  ]
+{'}'}</code></pre>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="py-16">
-    <div class="mx-auto max-w-7xl px-4 text-center">
-      <h2 class="mb-4 text-3xl font-bold text-gray-900">Contribute</h2>
-      <p class="mx-auto mb-8 max-w-2xl text-gray-600">
-        AssetPipe is community-driven. Help us grow the library by submitting logos for companies we don't have yet.
-      </p>
-      <a
-        href="/submit"
-        class="inline-block rounded-lg border border-brand-600 px-6 py-3 text-lg font-medium text-brand-600 hover:bg-brand-50"
-      >
-        Submit a Logo
-      </a>
+  <!-- CTA - CONTRIBUTE -->
+  <section class="cta-brutal">
+    <div class="cta-content">
+      <div class="cta-text">
+        <h2>COMMUNITY<br/>DRIVEN</h2>
+        <p>AssetPipe grows with contributions from people like you. Submit logos for companies we don't have yet.</p>
+      </div>
+      <div class="cta-action">
+        <a href="/submit" class="btn-brutal btn-brutal--yellow">
+          SUBMIT A LOGO →
+        </a>
+        <span class="cta-note">No account required</span>
+      </div>
     </div>
   </section>
 </Layout>

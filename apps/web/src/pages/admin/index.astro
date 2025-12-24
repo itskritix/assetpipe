@@ -1,477 +1,124 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { createSupabaseServer } from '../../lib/supabase';
+
+const supabase = createSupabaseServer(Astro.cookies, Astro.request.headers.get('cookie'));
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+// Check if user is admin (you would need an admin check in production)
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('role')
+  .eq('id', user.id)
+  .single();
+
+if (profile?.role !== 'admin') {
+  return Astro.redirect('/dashboard');
+}
+
+const { data: pendingSubmissions } = await supabase
+  .from('submissions')
+  .select('id, company_name, created_at, user_id')
+  .eq('status', 'pending')
+  .order('created_at', { ascending: true })
+  .limit(10);
+
+const { data: stats } = await supabase
+  .from('submissions')
+  .select('status');
+
+const { count: companiesCount } = await supabase
+  .from('companies')
+  .select('*', { count: 'exact', head: true });
+
+const { count: logosCount } = await supabase
+  .from('logos')
+  .select('*', { count: 'exact', head: true });
+
+const pendingCount = stats?.filter(s => s.status === 'pending').length || 0;
+const totalSubmissions = stats?.length || 0;
 ---
 
-<Layout title="Admin - Review Submissions">
-  <div class="mx-auto max-w-6xl px-4 py-12">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Review Submissions</h1>
-      <p class="mt-2 text-gray-600">Approve or reject logo submissions from users.</p>
-    </div>
-
-    <div class="mb-6 flex gap-4">
-      <button id="filter-pending" class="rounded-lg bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-800">
-        Pending
-      </button>
-      <button id="filter-approved" class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600">
-        Approved
-      </button>
-      <button id="filter-rejected" class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600">
-        Rejected
-      </button>
-    </div>
-
-    <div id="loading" class="text-center py-12">
-      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-r-transparent"></div>
-      <p class="mt-2 text-gray-600">Loading submissions...</p>
-    </div>
-
-    <div id="empty-state" class="hidden text-center py-12">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <h3 class="mt-4 text-lg font-medium text-gray-900">No submissions</h3>
-      <p class="mt-2 text-gray-600">No submissions match the current filter.</p>
-    </div>
-
-    <div id="submissions-list" class="hidden space-y-6"></div>
-  </div>
-
-  <!-- Review Modal -->
-  <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-    <div class="mx-4 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-      <h2 class="text-xl font-bold text-gray-900">Review Submission</h2>
-      <p id="modal-company" class="mt-1 text-gray-600"></p>
-
-      <div class="mt-4">
-        <label class="block text-sm font-medium text-gray-700">Admin Notes (optional)</label>
-        <textarea
-          id="admin-notes"
-          rows="3"
-          placeholder="Add notes about this submission..."
-          class="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-        ></textarea>
+<Layout title="Admin Dashboard">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <span class="tag-brutal tag-brutal--red">ADMIN</span>
+        <h2>CONTROL PANEL</h2>
       </div>
 
-      <div class="mt-6 flex gap-3">
-        <button
-          id="approve-btn"
-          class="flex-1 rounded-lg bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700"
-        >
-          Approve
-        </button>
-        <button
-          id="reject-btn"
-          class="flex-1 rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700"
-        >
-          Reject
-        </button>
-        <button
-          id="cancel-btn"
-          class="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
+      <nav class="sidebar-nav">
+        <a href="/admin" class="nav-item nav-item--active">
+          <span class="nav-icon">?</span> OVERVIEW
+        </a>
+        <a href="/admin/submissions" class="nav-item">
+          <span class="nav-icon">?</span> REVIEW QUEUE
+          {pendingCount > 0 && <span class="nav-badge">{pendingCount}</span>}
+        </a>
+        <a href="/admin/companies" class="nav-item">
+          <span class="nav-icon">?</span> COMPANIES
+        </a>
+        <a href="/admin/users" class="nav-item">
+          <span class="nav-icon">?</span> USERS
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="/dashboard" class="btn-brutal btn-brutal--outline">BACK TO DASHBOARD</a>
       </div>
-    </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-header">
+        <h1>ADMIN OVERVIEW</h1>
+        <span class="admin-user">{user.email}</span>
+      </header>
+
+      <section class="admin-stats">
+        <div class="admin-stat-card admin-stat-card--alert">
+          <span class="admin-stat__number">{pendingCount}</span>
+          <span class="admin-stat__label">PENDING REVIEW</span>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat__number">{totalSubmissions}</span>
+          <span class="admin-stat__label">TOTAL SUBMISSIONS</span>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat__number">{companiesCount || 0}</span>
+          <span class="admin-stat__label">COMPANIES</span>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat__number">{logosCount || 0}</span>
+          <span class="admin-stat__label">LOGOS</span>
+        </div>
+      </section>
+
+      <section class="admin-section">
+        <div class="section-header-dash">
+          <h2>PENDING SUBMISSIONS</h2>
+          <a href="/admin/submissions" class="link-brutal">VIEW ALL</a>
+        </div>
+
+        {pendingSubmissions && pendingSubmissions.length > 0 ? (
+          <div class="admin-table">
+            {pendingSubmissions.map(sub => (
+              <a href={'/admin/submissions/' + sub.id} class="admin-row">
+                <span class="admin-row__company">{sub.company_name}</span>
+                <span class="admin-row__date">{new Date(sub.created_at).toLocaleDateString()}</span>
+                <span class="admin-row__action">REVIEW</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div class="empty-dash">
+            <p>NO PENDING SUBMISSIONS</p>
+          </div>
+        )}
+      </section>
+    </main>
   </div>
 </Layout>
-
-<script>
-  import { createClient } from '@supabase/supabase-js';
-  import { isAdmin } from '../../lib/config';
-
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-  // Check admin access
-  async function checkAdminAccess() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !isAdmin(user.email)) {
-      window.location.href = '/';
-      return false;
-    }
-    return true;
-  }
-
-  const hasAdminAccess = await checkAdminAccess();
-  if (!hasAdminAccess) throw new Error('Not authorized');
-
-  const loading = document.getElementById('loading');
-  const emptyState = document.getElementById('empty-state');
-  const submissionsList = document.getElementById('submissions-list');
-  const reviewModal = document.getElementById('review-modal');
-  const modalCompany = document.getElementById('modal-company');
-  const adminNotes = document.getElementById('admin-notes') as HTMLTextAreaElement;
-
-  let currentFilter = 'pending';
-  let currentSubmissionId: string | null = null;
-
-  const filterButtons = {
-    pending: document.getElementById('filter-pending'),
-    approved: document.getElementById('filter-approved'),
-    rejected: document.getElementById('filter-rejected'),
-  };
-
-  interface SubmissionFile {
-    id: string;
-    storage_path: string;
-    format: string;
-    variant: string;
-  }
-
-  interface Submission {
-    id: string;
-    company_name: string;
-    company_domain: string | null;
-    status: string;
-    admin_notes: string | null;
-    created_at: string;
-    submission_files: SubmissionFile[];
-  }
-
-  async function getSignedUrl(path: string): Promise<string | null> {
-    const { data, error } = await supabase.storage
-      .from('submissions')
-      .createSignedUrl(path, 3600); // 1 hour expiry
-
-    if (error) {
-      console.error('Error creating signed URL:', error);
-      return null;
-    }
-    return data.signedUrl;
-  }
-
-  async function renderSubmission(sub: Submission): Promise<string> {
-    // Generate signed URLs for all files
-    const filesWithUrls = await Promise.all(
-      (sub.submission_files || []).map(async (file) => ({
-        ...file,
-        signedUrl: await getSignedUrl(file.storage_path)
-      }))
-    );
-
-    const filesHtml = filesWithUrls.length > 0 ? `
-      <div class="mt-4">
-        <p class="mb-2 text-sm font-medium text-gray-700">Uploaded Files:</p>
-        <div class="flex flex-wrap gap-4">
-          ${filesWithUrls.map((file) => `
-            <div class="rounded-lg border bg-gray-50 p-3">
-              <div class="mb-2 flex h-20 w-20 items-center justify-center rounded bg-white">
-                ${file.signedUrl ? `
-                  <img
-                    src="${file.signedUrl}"
-                    alt="Logo preview"
-                    class="max-h-16 max-w-16 object-contain"
-                    onerror="this.parentElement.innerHTML='<span class=\\'text-xs text-gray-400\\'>Load failed</span>'"
-                  />
-                ` : `
-                  <span class="text-xs text-gray-400">No preview</span>
-                `}
-              </div>
-              <p class="text-xs text-gray-600">${file.format?.toUpperCase() || 'File'}</p>
-              <p class="text-xs text-gray-400">${file.variant || 'primary'}</p>
-              ${file.signedUrl ? `
-                <a href="${file.signedUrl}" target="_blank" class="mt-1 block text-xs text-brand-600 hover:underline">
-                  Download
-                </a>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    ` : '';
-
-    return `
-      <div class="rounded-xl border bg-white p-6">
-        <div class="flex items-start justify-between">
-          <div>
-            <h3 class="text-xl font-semibold text-gray-900">${sub.company_name}</h3>
-            ${sub.company_domain ? `<p class="text-gray-500">${sub.company_domain}</p>` : ''}
-            <p class="mt-1 text-sm text-gray-400">Submitted ${new Date(sub.created_at).toLocaleString()}</p>
-          </div>
-          ${sub.status === 'pending' ? `
-            <button
-              data-id="${sub.id}"
-              data-company="${sub.company_name}"
-              class="review-btn rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
-            >
-              Review
-            </button>
-          ` : `
-            <span class="rounded-full px-3 py-1 text-xs font-medium ${
-              sub.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }">
-              ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-            </span>
-          `}
-        </div>
-        ${filesHtml}
-        ${sub.admin_notes ? `
-          <div class="mt-4 rounded-lg bg-gray-50 p-3">
-            <p class="text-sm text-gray-600"><strong>Admin notes:</strong> ${sub.admin_notes}</p>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }
-
-  async function loadSubmissions() {
-    loading?.classList.remove('hidden');
-    emptyState?.classList.add('hidden');
-    submissionsList?.classList.add('hidden');
-
-    const { data: submissions, error } = await supabase
-      .from('submissions')
-      .select(`
-        *,
-        submission_files (
-          id,
-          storage_path,
-          format,
-          variant
-        )
-      `)
-      .eq('status', currentFilter)
-      .order('created_at', { ascending: false });
-
-    loading?.classList.add('hidden');
-
-    if (error) {
-      console.error('Error:', error);
-      return;
-    }
-
-    if (!submissions || submissions.length === 0) {
-      emptyState?.classList.remove('hidden');
-      return;
-    }
-
-    // Render all submissions with signed URLs
-    const submissionsHtml = await Promise.all(
-      submissions.map((sub) => renderSubmission(sub as Submission))
-    );
-
-    submissionsList?.classList.remove('hidden');
-    submissionsList!.innerHTML = submissionsHtml.join('');
-
-    // Attach review button handlers
-    document.querySelectorAll('.review-btn').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        currentSubmissionId = target.dataset.id || null;
-        modalCompany!.textContent = target.dataset.company || '';
-        adminNotes.value = '';
-        reviewModal?.classList.remove('hidden');
-        reviewModal?.classList.add('flex');
-      });
-    });
-  }
-
-  // Filter button handlers
-  Object.entries(filterButtons).forEach(([status, btn]) => {
-    btn?.addEventListener('click', () => {
-      currentFilter = status;
-      Object.values(filterButtons).forEach((b) => {
-        b?.classList.remove('bg-yellow-100', 'text-yellow-800', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-        b?.classList.add('bg-gray-100', 'text-gray-600');
-      });
-      const colors: Record<string, string[]> = {
-        pending: ['bg-yellow-100', 'text-yellow-800'],
-        approved: ['bg-green-100', 'text-green-800'],
-        rejected: ['bg-red-100', 'text-red-800'],
-      };
-      btn?.classList.remove('bg-gray-100', 'text-gray-600');
-      btn?.classList.add(...colors[status]);
-      loadSubmissions();
-    });
-  });
-
-  // Modal handlers
-  document.getElementById('cancel-btn')?.addEventListener('click', () => {
-    reviewModal?.classList.add('hidden');
-    reviewModal?.classList.remove('flex');
-  });
-
-  // Helper to create URL-friendly slug
-  function createSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-  }
-
-  let isProcessing = false;
-
-  async function updateSubmission(status: 'approved' | 'rejected') {
-    if (!currentSubmissionId || isProcessing) return;
-
-    isProcessing = true;
-    const approveBtn = document.getElementById('approve-btn') as HTMLButtonElement;
-    const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement;
-    const originalApproveText = approveBtn.textContent;
-    const originalRejectText = rejectBtn.textContent;
-
-    approveBtn.disabled = true;
-    rejectBtn.disabled = true;
-
-    if (status === 'approved') {
-      approveBtn.textContent = 'Approving...';
-    } else {
-      rejectBtn.textContent = 'Rejecting...';
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (status === 'approved') {
-      // Get the full submission with files
-      const { data: submission, error: fetchError } = await supabase
-        .from('submissions')
-        .select(`
-          *,
-          submission_files (
-            id,
-            storage_path,
-            format,
-            variant
-          )
-        `)
-        .eq('id', currentSubmissionId)
-        .single();
-
-      if (fetchError || !submission) {
-        alert('Error fetching submission: ' + (fetchError?.message || 'Not found'));
-        isProcessing = false;
-        approveBtn.disabled = false;
-        rejectBtn.disabled = false;
-        approveBtn.textContent = originalApproveText;
-        rejectBtn.textContent = originalRejectText;
-        return;
-      }
-
-      // Check if company already exists (by domain or name)
-      const slug = createSlug(submission.company_name);
-      let company;
-
-      // Try to find existing company by domain first, then by name
-      const { data: existingCompany } = await supabase
-        .from('companies')
-        .select('*')
-        .or(`domain.eq.${submission.company_domain},name.ilike.${submission.company_name}`)
-        .limit(1)
-        .single();
-
-      if (existingCompany) {
-        company = existingCompany;
-      } else {
-        // Create new company
-        const { data: newCompany, error: companyError } = await supabase
-          .from('companies')
-          .insert({
-            name: submission.company_name,
-            slug: slug + '-' + Date.now(),
-            domain: submission.company_domain,
-          })
-          .select()
-          .single();
-
-        if (companyError) {
-          alert('Error creating company: ' + companyError.message);
-          isProcessing = false;
-          approveBtn.disabled = false;
-          rejectBtn.disabled = false;
-          approveBtn.textContent = originalApproveText;
-          rejectBtn.textContent = originalRejectText;
-          return;
-        }
-        company = newCompany;
-      }
-
-      // Copy files from submissions to logos bucket and create logo records
-      for (const file of submission.submission_files || []) {
-        // Download file from submissions bucket
-        const { data: fileData, error: downloadError } = await supabase.storage
-          .from('submissions')
-          .download(file.storage_path);
-
-        if (downloadError) {
-          console.error('Error downloading file:', downloadError);
-          continue;
-        }
-
-        // Upload to logos bucket with new path
-        const newPath = `${company.slug}/${file.variant || 'primary'}.${file.format}`;
-        const { error: uploadError } = await supabase.storage
-          .from('logos')
-          .upload(newPath, fileData, {
-            contentType: file.format === 'svg' ? 'image/svg+xml' : 'image/png',
-            upsert: true,
-          });
-
-        if (uploadError) {
-          console.error('Error uploading to logos bucket:', uploadError);
-          continue;
-        }
-
-        // Get public URL for the logo
-        const { data: publicUrlData } = supabase.storage
-          .from('logos')
-          .getPublicUrl(newPath);
-
-        // Create logo record
-        const { error: logoError } = await supabase
-          .from('logos')
-          .insert({
-            company_id: company.id,
-            format: file.format,
-            variant: file.variant || 'primary',
-            storage_path: publicUrlData.publicUrl,
-          });
-
-        if (logoError) {
-          console.error('Error creating logo record:', logoError);
-        }
-      }
-    }
-
-    // Update submission status
-    const { error } = await supabase
-      .from('submissions')
-      .update({
-        status,
-        admin_notes: adminNotes.value || null,
-        reviewed_by: user?.id,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', currentSubmissionId);
-
-    if (error) {
-      alert('Error updating submission: ' + error.message);
-      isProcessing = false;
-      approveBtn.disabled = false;
-      rejectBtn.disabled = false;
-      approveBtn.textContent = 'Approve';
-      rejectBtn.textContent = 'Reject';
-      return;
-    }
-
-    isProcessing = false;
-    reviewModal?.classList.add('hidden');
-    reviewModal?.classList.remove('flex');
-
-    // Reset buttons for next modal open
-    approveBtn.disabled = false;
-    rejectBtn.disabled = false;
-    approveBtn.textContent = 'Approve';
-    rejectBtn.textContent = 'Reject';
-
-    loadSubmissions();
-  }
-
-  document.getElementById('approve-btn')?.addEventListener('click', () => updateSubmission('approved'));
-  document.getElementById('reject-btn')?.addEventListener('click', () => updateSubmission('rejected'));
-
-  // Initial load
-  loadSubmissions();
-</script>

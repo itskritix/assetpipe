@@ -80,139 +80,196 @@ const formatBytes = (bytes: number | null) => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
+
+const brandKit = company.brand_kits?.[0];
 ---
 
 <Layout title={company.name} description={`Download ${company.name} logos in SVG and PNG formats`}>
-  <div class="mx-auto max-w-7xl px-4 py-12">
-    <div class="mb-8 flex items-start justify-between">
-      <div>
-        <div class="flex items-center gap-3">
-          <h1 class="text-3xl font-bold text-gray-900">{company.name}</h1>
-          {company.is_verified && (
-            <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-              Verified
-            </span>
+  <!-- COMPANY HEADER -->
+  <section class="company-header">
+    <div class="company-header__content">
+      <div class="company-header__breadcrumb">
+        <a href="/browse" class="breadcrumb-link">← BROWSE</a>
+      </div>
+
+      <div class="company-header__main">
+        <div class="company-header__info">
+          <div class="company-name-row">
+            <h1>{company.name.toUpperCase()}</h1>
+            {company.is_verified && (
+              <span class="tag-brutal tag-brutal--green">VERIFIED</span>
+            )}
+          </div>
+          {company.domain && (
+            <span class="company-domain">{company.domain}</span>
           )}
         </div>
-        {company.domain && (
-          <p class="mt-1 text-gray-500">{company.domain}</p>
-        )}
-        {company.description && (
-          <p class="mt-4 max-w-2xl text-gray-600">{company.description}</p>
-        )}
-        {company.website_url && (
-          <a
-            href={company.website_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="mt-2 inline-block text-brand-600 hover:underline"
-          >
-            Visit website
-          </a>
-        )}
-      </div>
-    </div>
 
-    <div class="mb-12">
-      <h2 class="mb-6 text-xl font-semibold text-gray-900">Logos</h2>
-      {company.logos && company.logos.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {company.logos.map((logo) => (
-            <div class="rounded-xl border bg-white p-6">
-              <div class="mb-4 flex h-32 items-center justify-center rounded-lg bg-gray-100">
-                <img
-                  src={logo.storage_path}
-                  alt={`${company.name} ${logo.variant}`}
-                  class="h-24 w-auto object-contain"
-                />
-              </div>
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="font-medium capitalize text-gray-900">{logo.variant}</p>
-                  <p class="text-sm text-gray-500">
-                    {logo.format.toUpperCase()}
-                    {logo.width && logo.height && ` - ${logo.width}x${logo.height}`}
-                  </p>
-                  <p class="text-xs text-gray-400">{formatBytes(logo.file_size)}</p>
-                </div>
-                <a
-                  href={logo.storage_path}
-                  download
-                  class="rounded-lg bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700"
-                >
-                  Download
-                </a>
-              </div>
-            </div>
-          ))}
+        <div class="company-header__meta">
+          <div class="meta-stat">
+            <span class="meta-number">{company.logos?.length || 0}</span>
+            <span class="meta-label">LOGOS</span>
+          </div>
+          {company.website_url && (
+            <a href={company.website_url} target="_blank" rel="noopener noreferrer" class="btn-brutal btn-brutal--outline">
+              VISIT SITE ↗
+            </a>
+          )}
         </div>
-      ) : (
-        <p class="text-gray-500">No logos available yet.</p>
+      </div>
+
+      {company.description && (
+        <p class="company-description">{company.description}</p>
       )}
     </div>
+  </section>
 
-    {company.brand_kits && company.brand_kits.length > 0 && (
-      <div class="mb-12">
-        <h2 class="mb-6 text-xl font-semibold text-gray-900">Brand Kit</h2>
-        {company.brand_kits.map((kit) => (
-          <div class="rounded-xl border bg-white p-6">
-            {kit.primary_color && (
-              <div class="mb-4">
-                <p class="mb-2 text-sm font-medium text-gray-700">Primary Color</p>
-                <div class="flex items-center gap-3">
-                  <div
-                    class="h-10 w-10 rounded-lg border"
-                    style={`background-color: ${kit.primary_color}`}
-                  />
-                  <code class="text-sm text-gray-600">{kit.primary_color}</code>
+  <!-- LOGOS SECTION -->
+  <section class="logos-section">
+    <div class="section-header-brutal">
+      <span class="tag-brutal">ASSETS</span>
+      <h2>AVAILABLE LOGOS</h2>
+    </div>
+
+    {company.logos && company.logos.length > 0 ? (
+      <div class="logos-grid-brutal">
+        {company.logos.map((logo, index) => (
+          <div class={`logo-item-brutal ${index === 0 ? 'logo-item-brutal--primary' : ''}`}>
+            <div class="logo-item__preview">
+              <img
+                src={logo.storage_path}
+                alt={`${company.name} ${logo.variant}`}
+                loading="lazy"
+              />
+            </div>
+
+            <div class="logo-item__details">
+              <div class="logo-item__info">
+                <h3 class="logo-item__variant">{logo.variant.toUpperCase()}</h3>
+                <div class="logo-item__specs">
+                  <span class="spec-tag">{logo.format.toUpperCase()}</span>
+                  {logo.width && logo.height && (
+                    <span class="spec-dim">{logo.width} × {logo.height}</span>
+                  )}
+                  <span class="spec-size">{formatBytes(logo.file_size)}</span>
                 </div>
               </div>
-            )}
-            {kit.secondary_colors && kit.secondary_colors.length > 0 && (
-              <div class="mb-4">
-                <p class="mb-2 text-sm font-medium text-gray-700">Secondary Colors</p>
-                <div class="flex gap-2">
-                  {kit.secondary_colors.map((color) => (
-                    <div class="text-center">
-                      <div
-                        class="h-10 w-10 rounded-lg border"
-                        style={`background-color: ${color}`}
-                      />
-                      <code class="text-xs text-gray-500">{color}</code>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {kit.fonts && (
-              <div class="mb-4">
-                <p class="mb-2 text-sm font-medium text-gray-700">Fonts</p>
-                <p class="text-gray-600">{JSON.stringify(kit.fonts)}</p>
-              </div>
-            )}
-            {kit.guidelines_url && (
+
               <a
-                href={kit.guidelines_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-brand-600 hover:underline"
+                href={logo.storage_path}
+                download={`${company.slug}-${logo.variant}.${logo.format}`}
+                class="btn-brutal btn-brutal--yellow logo-download"
               >
-                View brand guidelines
+                DOWNLOAD →
               </a>
-            )}
+            </div>
           </div>
         ))}
       </div>
+    ) : (
+      <div class="empty-logos-brutal">
+        <p>NO LOGOS AVAILABLE YET</p>
+        <a href="/submit" class="btn-brutal">SUBMIT ONE →</a>
+      </div>
     )}
+  </section>
 
-    <div class="rounded-xl bg-gray-100 p-6">
-      <h2 class="mb-4 text-lg font-semibold text-gray-900">API Access</h2>
-      <p class="mb-4 text-gray-600">Get this logo programmatically via our API:</p>
-      <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.assetpipe.com/v1/companies/{company.slug}/logos</code></pre>
-      <a href="/docs" class="mt-4 inline-block text-brand-600 hover:underline">
-        View API documentation
+  <!-- BRAND KIT SECTION -->
+  {brandKit && (
+    <section class="brandkit-section">
+      <div class="section-header-brutal">
+        <span class="tag-brutal tag-brutal--yellow">IDENTITY</span>
+        <h2>BRAND KIT</h2>
+      </div>
+
+      <div class="brandkit-grid">
+        {brandKit.primary_color && (
+          <div class="brandkit-card brandkit-card--color">
+            <h3>PRIMARY COLOR</h3>
+            <div class="color-display">
+              <div class="color-swatch" style={`background-color: ${brandKit.primary_color}`}></div>
+              <div class="color-info">
+                <code class="color-hex">{brandKit.primary_color}</code>
+                <span class="color-label">HEX</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {brandKit.secondary_colors && brandKit.secondary_colors.length > 0 && (
+          <div class="brandkit-card brandkit-card--palette">
+            <h3>SECONDARY COLORS</h3>
+            <div class="palette-display">
+              {brandKit.secondary_colors.map((color) => (
+                <div class="palette-item">
+                  <div class="palette-swatch" style={`background-color: ${color}`}></div>
+                  <code class="palette-hex">{color}</code>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {brandKit.fonts && Object.keys(brandKit.fonts).length > 0 && (
+          <div class="brandkit-card brandkit-card--fonts">
+            <h3>TYPOGRAPHY</h3>
+            <div class="fonts-display">
+              {Object.entries(brandKit.fonts).map(([usage, font]) => (
+                <div class="font-item">
+                  <span class="font-usage">{usage.toUpperCase()}</span>
+                  <span class="font-name">{font}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {brandKit.guidelines_url && (
+          <div class="brandkit-card brandkit-card--guidelines">
+            <h3>GUIDELINES</h3>
+            <a href={brandKit.guidelines_url} target="_blank" rel="noopener noreferrer" class="btn-brutal">
+              VIEW BRAND GUIDELINES ↗
+            </a>
+          </div>
+        )}
+      </div>
+    </section>
+  )}
+
+  <!-- API SECTION -->
+  <section class="api-section-brutal">
+    <div class="api-section__content">
+      <div class="api-section__info">
+        <span class="tag-brutal tag-brutal--green">DEVELOPERS</span>
+        <h2>API ACCESS</h2>
+        <p>Fetch this company's logos programmatically via our REST API.</p>
+        <a href="/docs" class="btn-brutal btn-brutal--outline">
+          FULL API DOCS →
+        </a>
+      </div>
+
+      <div class="api-section__code">
+        <div class="code-header-brutal">
+          <span class="code-lang">BASH</span>
+          <span class="code-filename">request.sh</span>
+        </div>
+        <pre class="code-block-brutal"><code><span class="code-comment"># Get all logos for {company.name}</span>
+curl -X GET \
+  "https://api.assetpipe.com/v1/companies/{company.slug}/logos" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- RELATED CTA -->
+  <section class="related-cta">
+    <div class="related-cta__content">
+      <h3>MISSING A LOGO?</h3>
+      <p>Help us grow by submitting additional variants for {company.name}.</p>
+      <a href="/submit" class="btn-brutal btn-brutal--yellow">
+        SUBMIT A LOGO →
       </a>
     </div>
-  </div>
+  </section>
 </Layout>

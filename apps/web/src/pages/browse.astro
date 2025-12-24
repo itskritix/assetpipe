@@ -18,6 +18,7 @@ interface Company {
 }
 
 const searchQuery = Astro.url.searchParams.get('q') || '';
+const format = Astro.url.searchParams.get('format') || '';
 
 const { data } = await supabase
   .from('companies')
@@ -38,72 +39,131 @@ const { data } = await supabase
   .limit(50);
 
 const companies = data as Company[] | null;
+const totalCount = companies?.length || 0;
 ---
 
 <Layout title="Browse Logos">
-  <div class="mx-auto max-w-7xl px-4 py-12">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Browse Logos</h1>
-      <p class="mt-2 text-gray-600">Find and download company logos in SVG and PNG formats.</p>
+  <!-- BROWSE HEADER -->
+  <section class="browse-header">
+    <div class="browse-header__content">
+      <div class="browse-header__title">
+        <span class="tag-brutal">LOGO LIBRARY</span>
+        <h1>BROWSE</h1>
+      </div>
+      <div class="browse-header__count">
+        <span class="count-number">{totalCount}</span>
+        <span class="count-label">COMPANIES<br/>FOUND</span>
+      </div>
     </div>
+  </section>
 
-    <form method="get" class="mb-8">
-      <div class="flex gap-2">
+  <!-- SEARCH & FILTERS -->
+  <section class="browse-search">
+    <form method="get" class="search-form-brutal">
+      <div class="search-row">
         <input
           type="text"
           name="q"
           value={searchQuery}
-          placeholder="Search by company name..."
-          class="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+          placeholder="SEARCH COMPANIES..."
+          class="input-brutal search-input-large"
+          autocomplete="off"
         />
-        <button
-          type="submit"
-          class="rounded-lg bg-brand-600 px-6 py-3 text-white hover:bg-brand-700"
-        >
-          Search
+        <button type="submit" class="btn-brutal btn-brutal--yellow search-submit">
+          SEARCH →
         </button>
       </div>
-    </form>
 
+      <div class="filter-row">
+        <span class="filter-label">FILTER BY FORMAT:</span>
+        <div class="filter-options">
+          <a
+            href={`/browse${searchQuery ? `?q=${searchQuery}` : ''}`}
+            class={`filter-tag ${!format ? 'filter-tag--active' : ''}`}
+          >
+            ALL
+          </a>
+          <a
+            href={`/browse?${searchQuery ? `q=${searchQuery}&` : ''}format=svg`}
+            class={`filter-tag ${format === 'svg' ? 'filter-tag--active' : ''}`}
+          >
+            SVG
+          </a>
+          <a
+            href={`/browse?${searchQuery ? `q=${searchQuery}&` : ''}format=png`}
+            class={`filter-tag ${format === 'png' ? 'filter-tag--active' : ''}`}
+          >
+            PNG
+          </a>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- LOGO GRID -->
+  <section class="browse-grid-section">
     {companies && companies.length > 0 ? (
-      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {companies.map((company) => (
+      <div class="logo-grid-brutal">
+        {companies.map((company, index) => (
           <a
             href={`/company/${company.slug}`}
-            class="group rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md"
+            class={`logo-card-brutal ${index % 5 === 0 ? 'logo-card-brutal--featured' : ''}`}
           >
-            <div class="mb-4 flex h-20 items-center justify-center rounded-lg bg-gray-100">
+            <div class="logo-card__preview">
               {company.logos && company.logos[0] ? (
                 <img
                   src={company.logos[0].storage_path}
                   alt={company.name}
-                  class="h-16 w-auto object-contain"
+                  loading="lazy"
                 />
               ) : (
-                <span class="text-2xl font-bold text-gray-400">
+                <span class="logo-card__placeholder">
                   {company.name.charAt(0)}
                 </span>
               )}
             </div>
-            <h3 class="font-semibold text-gray-900 group-hover:text-brand-600">
-              {company.name}
-            </h3>
-            {company.domain && (
-              <p class="text-sm text-gray-500">{company.domain}</p>
-            )}
-            <p class="mt-2 text-xs text-gray-400">
-              {company.logos?.length || 0} logo{(company.logos?.length || 0) !== 1 ? 's' : ''}
-            </p>
+            <div class="logo-card__info">
+              <h3 class="logo-card__name">{company.name}</h3>
+              {company.domain && (
+                <span class="logo-card__domain">{company.domain}</span>
+              )}
+              <div class="logo-card__meta">
+                <span class="tag-brutal tag-brutal--outline">
+                  {company.logos?.length || 0} LOGO{(company.logos?.length || 0) !== 1 ? 'S' : ''}
+                </span>
+              </div>
+            </div>
+            <div class="logo-card__arrow">→</div>
           </a>
         ))}
       </div>
     ) : (
-      <div class="rounded-xl bg-gray-100 py-16 text-center">
-        <p class="text-gray-600">No logos found{searchQuery ? ` for "${searchQuery}"` : ''}.</p>
-        <a href="/submit" class="mt-4 inline-block text-brand-600 hover:underline">
-          Submit a logo
-        </a>
+      <div class="empty-state-brutal">
+        <div class="empty-state__content">
+          <h2>NO RESULTS</h2>
+          {searchQuery && (
+            <p>No logos found for "{searchQuery}"</p>
+          )}
+          <div class="empty-state__actions">
+            <a href="/browse" class="btn-brutal btn-brutal--outline">
+              CLEAR SEARCH
+            </a>
+            <a href="/submit" class="btn-brutal btn-brutal--yellow">
+              SUBMIT A LOGO →
+            </a>
+          </div>
+        </div>
       </div>
     )}
-  </div>
+  </section>
+
+  <!-- PAGINATION PLACEHOLDER -->
+  {companies && companies.length >= 50 && (
+    <section class="browse-pagination">
+      <div class="pagination-content">
+        <span class="pagination-text">SHOWING FIRST 50 RESULTS</span>
+        <span class="pagination-text">MORE COMING SOON</span>
+      </div>
+    </section>
+  )}
 </Layout>

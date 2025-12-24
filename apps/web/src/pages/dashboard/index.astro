@@ -1,87 +1,136 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { createSupabaseServer } from '../../lib/supabase';
+
+const supabase = createSupabaseServer(Astro.cookies, Astro.request.headers.get('cookie'));
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+const { data: submissions } = await supabase
+  .from('submissions')
+  .select('id, company_name, status, created_at')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false })
+  .limit(5);
+
+const { data: stats } = await supabase
+  .from('submissions')
+  .select('status')
+  .eq('user_id', user.id);
+
+const totalSubmissions = stats?.length || 0;
+const approvedCount = stats?.filter(s => s.status === 'approved').length || 0;
+const pendingCount = stats?.filter(s => s.status === 'pending').length || 0;
 ---
 
 <Layout title="Dashboard">
-  <div class="mx-auto max-w-4xl px-4 py-12">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-      <p id="user-email" class="mt-2 text-gray-600"></p>
-    </div>
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-header">
+        <span class="tag-brutal tag-brutal--yellow">DASHBOARD</span>
+        <h2>MY ACCOUNT</h2>
+      </div>
 
-    <div class="grid gap-6 md:grid-cols-2">
-      <a href="/dashboard/submissions" class="block rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md">
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100">
-          <svg class="h-6 w-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item nav-item--active">
+          <span class="nav-icon">?</span> OVERVIEW
+        </a>
+        <a href="/dashboard/submissions" class="nav-item">
+          <span class="nav-icon">?</span> MY SUBMISSIONS
+        </a>
+        <a href="/dashboard/api-keys" class="nav-item">
+          <span class="nav-icon">?</span> API KEYS
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn-brutal btn-brutal--outline logout-btn">LOGOUT</button>
+      </div>
+    </aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="dashboard-header__title">
+          <h1>OVERVIEW</h1>
+          <p class="user-email">{user.email}</p>
         </div>
-        <h2 class="text-lg font-semibold text-gray-900">My Submissions</h2>
-        <p class="mt-1 text-sm text-gray-600">View and manage your logo submissions</p>
-      </a>
+        <a href="/submit" class="btn-brutal btn-brutal--yellow">SUBMIT LOGO</a>
+      </header>
 
-      <a href="/dashboard/api-keys" class="block rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md">
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-100">
-          <svg class="h-6 w-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-          </svg>
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-card__number">{totalSubmissions}</span>
+          <span class="stat-card__label">TOTAL SUBMISSIONS</span>
         </div>
-        <h2 class="text-lg font-semibold text-gray-900">API Keys</h2>
-        <p class="mt-1 text-sm text-gray-600">Manage your API access keys</p>
-      </a>
-
-      <a href="/submit" class="block rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md">
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-          <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
+        <div class="stat-card stat-card--green">
+          <span class="stat-card__number">{approvedCount}</span>
+          <span class="stat-card__label">APPROVED</span>
         </div>
-        <h2 class="text-lg font-semibold text-gray-900">Submit a Logo</h2>
-        <p class="mt-1 text-sm text-gray-600">Contribute a new logo to the library</p>
-      </a>
-
-      <a href="/browse" class="block rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md">
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
-          <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+        <div class="stat-card stat-card--yellow">
+          <span class="stat-card__number">{pendingCount}</span>
+          <span class="stat-card__label">PENDING REVIEW</span>
         </div>
-        <h2 class="text-lg font-semibold text-gray-900">Browse Logos</h2>
-        <p class="mt-1 text-sm text-gray-600">Explore the logo library</p>
-      </a>
-    </div>
+      </section>
 
-    <div class="mt-8">
-      <button
-        id="logout-btn"
-        class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
-      >
-        Sign Out
-      </button>
-    </div>
+      <section class="dashboard-section">
+        <div class="section-header-dash">
+          <h2>RECENT SUBMISSIONS</h2>
+          <a href="/dashboard/submissions" class="link-brutal">VIEW ALL</a>
+        </div>
+
+        {submissions && submissions.length > 0 ? (
+          <div class="submissions-table">
+            <div class="table-header">
+              <span>COMPANY</span>
+              <span>STATUS</span>
+              <span>DATE</span>
+            </div>
+            {submissions.map(sub => (
+              <div class="table-row">
+                <span class="table-company">{sub.company_name}</span>
+                <span class={"status-tag status-tag--" + sub.status}>{sub.status.toUpperCase()}</span>
+                <span class="table-date">{new Date(sub.created_at).toLocaleDateString()}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div class="empty-dash">
+            <p>NO SUBMISSIONS YET</p>
+            <a href="/submit" class="btn-brutal">SUBMIT YOUR FIRST LOGO</a>
+          </div>
+        )}
+      </section>
+
+      <section class="dashboard-section">
+        <h2>QUICK ACTIONS</h2>
+        <div class="actions-grid">
+          <a href="/submit" class="action-card">
+            <span class="action-icon">+</span>
+            <span class="action-label">SUBMIT LOGO</span>
+          </a>
+          <a href="/browse" class="action-card">
+            <span class="action-icon">O</span>
+            <span class="action-label">BROWSE LOGOS</span>
+          </a>
+          <a href="/docs" class="action-card">
+            <span class="action-icon">=</span>
+            <span class="action-label">API DOCS</span>
+          </a>
+        </div>
+      </section>
+    </main>
   </div>
 </Layout>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
-
+  import { createBrowserClient } from '@supabase/ssr';
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
-  // Check if user is logged in
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    window.location.href = '/login';
-  } else {
-    const userEmail = document.getElementById('user-email');
-    if (userEmail) {
-      userEmail.textContent = `Signed in as ${user.email}`;
-    }
-  }
-
-  // Logout handler
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await supabase.auth.signOut();
     window.location.href = '/';

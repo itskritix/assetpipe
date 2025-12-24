@@ -1,0 +1,145 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { createSupabaseServer } from '../../lib/supabase';
+
+const supabase = createSupabaseServer(Astro.cookies, Astro.request.headers.get('cookie'));
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('role')
+  .eq('id', user.id)
+  .single();
+
+if (profile?.role !== 'admin') {
+  return Astro.redirect('/dashboard');
+}
+
+const status = Astro.url.searchParams.get('status') || 'pending';
+
+const { data: submissions } = await supabase
+  .from('submissions')
+  .select('id, company_name, company_domain, status, created_at, user_id, submission_files(id, format, variant, storage_path)')
+  .eq('status', status)
+  .order('created_at', { ascending: true });
+
+const { data: stats } = await supabase
+  .from('submissions')
+  .select('status');
+
+const pendingCount = stats?.filter(s => s.status === 'pending').length || 0;
+const approvedCount = stats?.filter(s => s.status === 'approved').length || 0;
+const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
+---
+
+<Layout title="Review Submissions">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <span class="tag-brutal tag-brutal--red">ADMIN</span>
+        <h2>CONTROL PANEL</h2>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/admin" class="nav-item">
+          <span class="nav-icon">?</span> OVERVIEW
+        </a>
+        <a href="/admin/submissions" class="nav-item nav-item--active">
+          <span class="nav-icon">?</span> REVIEW QUEUE
+          {pendingCount > 0 && <span class="nav-badge">{pendingCount}</span>}
+        </a>
+        <a href="/admin/companies" class="nav-item">
+          <span class="nav-icon">?</span> COMPANIES
+        </a>
+        <a href="/admin/users" class="nav-item">
+          <span class="nav-icon">?</span> USERS
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="/dashboard" class="btn-brutal btn-brutal--outline">BACK TO DASHBOARD</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-header">
+        <h1>REVIEW QUEUE</h1>
+      </header>
+
+      <div class="filter-tabs">
+        <a href="/admin/submissions?status=pending" class={"filter-tab " + (status === 'pending' ? 'filter-tab--active' : '')}>
+          PENDING ({pendingCount})
+        </a>
+        <a href="/admin/submissions?status=approved" class={"filter-tab " + (status === 'approved' ? 'filter-tab--active' : '')}>
+          APPROVED ({approvedCount})
+        </a>
+        <a href="/admin/submissions?status=rejected" class={"filter-tab " + (status === 'rejected' ? 'filter-tab--active' : '')}>
+          REJECTED ({rejectedCount})
+        </a>
+      </div>
+
+      <section class="review-list">
+        {submissions && submissions.length > 0 ? (
+          submissions.map(sub => (
+            <div class="review-card" data-id={sub.id}>
+              <div class="review-card__header">
+                <div>
+                  <h3>{sub.company_name}</h3>
+                  {sub.company_domain && <span class="review-domain">{sub.company_domain}</span>}
+                </div>
+                <span class="review-date">{new Date(sub.created_at).toLocaleDateString()}</span>
+              </div>
+
+              <div class="review-card__files">
+                {sub.submission_files?.map(file => (
+                  <div class="review-file">
+                    <img src={file.storage_path} alt={file.variant} class="review-preview" />
+                    <span class="file-meta">{file.format.toUpperCase()} - {file.variant.toUpperCase()}</span>
+                  </div>
+                ))}
+              </div>
+
+              {status === 'pending' && (
+                <div class="review-card__actions">
+                  <button class="btn-brutal btn-brutal--green approve-btn" data-id={sub.id}>APPROVE</button>
+                  <button class="btn-brutal btn-brutal--outline reject-btn" data-id={sub.id}>REJECT</button>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div class="empty-dash">
+            <p>NO {status.toUpperCase()} SUBMISSIONS</p>
+          </div>
+        )}
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  document.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).dataset.id;
+      const { error } = await supabase.from('submissions').update({ status: 'approved' }).eq('id', id);
+      if (!error) location.reload();
+    });
+  });
+
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).dataset.id;
+      const { error } = await supabase.from('submissions').update({ status: 'rejected' }).eq('id', id);
+      if (!error) location.reload();
+    });
+  });
+</script>

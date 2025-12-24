@@ -1,113 +1,105 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { createSupabaseServer } from '../../lib/supabase';
+
+const supabase = createSupabaseServer(Astro.cookies, Astro.request.headers.get('cookie'));
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+const { data: submissions } = await supabase
+  .from('submissions')
+  .select('id, company_name, company_domain, status, created_at, submission_files(id, format, variant)')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false });
 ---
 
 <Layout title="My Submissions">
-  <div class="mx-auto max-w-4xl px-4 py-12">
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">My Submissions</h1>
-        <p class="mt-2 text-gray-600">Track the status of your logo submissions.</p>
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-header">
+        <span class="tag-brutal tag-brutal--yellow">DASHBOARD</span>
+        <h2>MY ACCOUNT</h2>
       </div>
-      <a
-        href="/submit"
-        class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
-      >
-        Submit New Logo
-      </a>
-    </div>
 
-    <div id="loading" class="text-center py-12">
-      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-r-transparent"></div>
-      <p class="mt-2 text-gray-600">Loading submissions...</p>
-    </div>
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item">
+          <span class="nav-icon">?</span> OVERVIEW
+        </a>
+        <a href="/dashboard/submissions" class="nav-item nav-item--active">
+          <span class="nav-icon">?</span> MY SUBMISSIONS
+        </a>
+        <a href="/dashboard/api-keys" class="nav-item">
+          <span class="nav-icon">?</span> API KEYS
+        </a>
+      </nav>
 
-    <div id="empty-state" class="hidden text-center py-12">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-      <h3 class="mt-4 text-lg font-medium text-gray-900">No submissions yet</h3>
-      <p class="mt-2 text-gray-600">Get started by submitting your first logo.</p>
-      <a
-        href="/submit"
-        class="mt-4 inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
-      >
-        Submit a Logo
-      </a>
-    </div>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn-brutal btn-brutal--outline logout-btn">LOGOUT</button>
+      </div>
+    </aside>
 
-    <div id="submissions-list" class="hidden space-y-4"></div>
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="dashboard-header__title">
+          <h1>MY SUBMISSIONS</h1>
+          <p>{submissions?.length || 0} TOTAL</p>
+        </div>
+        <a href="/submit" class="btn-brutal btn-brutal--yellow">NEW SUBMISSION</a>
+      </header>
+
+      <section class="submissions-list">
+        {submissions && submissions.length > 0 ? (
+          submissions.map(sub => (
+            <div class="submission-card">
+              <div class="submission-card__header">
+                <div class="submission-card__info">
+                  <h3>{sub.company_name}</h3>
+                  {sub.company_domain && <span class="submission-domain">{sub.company_domain}</span>}
+                </div>
+                <span class={"status-tag status-tag--" + sub.status}>{sub.status.toUpperCase()}</span>
+              </div>
+              <div class="submission-card__meta">
+                <span class="meta-item">
+                  <span class="meta-label">FILES:</span>
+                  {sub.submission_files?.length || 0}
+                </span>
+                <span class="meta-item">
+                  <span class="meta-label">SUBMITTED:</span>
+                  {new Date(sub.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              {sub.submission_files && sub.submission_files.length > 0 && (
+                <div class="submission-card__files">
+                  {sub.submission_files.map(file => (
+                    <span class="file-tag">{file.format.toUpperCase()} - {file.variant.toUpperCase()}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div class="empty-dash">
+            <h3>NO SUBMISSIONS YET</h3>
+            <p>START CONTRIBUTING BY SUBMITTING YOUR FIRST LOGO</p>
+            <a href="/submit" class="btn-brutal btn-brutal--yellow">SUBMIT A LOGO</a>
+          </div>
+        )}
+      </section>
+    </main>
   </div>
 </Layout>
 
 <script>
   import { createClient } from '@supabase/supabase-js';
-
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const loading = document.getElementById('loading');
-  const emptyState = document.getElementById('empty-state');
-  const submissionsList = document.getElementById('submissions-list');
-
-  async function init() {
-    // Check if user is logged in
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      window.location.href = '/login';
-      return;
-    }
-
-    // Fetch submissions
-    const { data: submissions, error } = await supabase
-      .from('submissions')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    loading?.classList.add('hidden');
-
-    if (error) {
-      console.error('Error fetching submissions:', error);
-      return;
-    }
-
-    if (!submissions || submissions.length === 0) {
-      emptyState?.classList.remove('hidden');
-    } else {
-      submissionsList?.classList.remove('hidden');
-
-      const statusColors: Record<string, string> = {
-        pending: 'bg-yellow-100 text-yellow-700',
-        approved: 'bg-green-100 text-green-700',
-        rejected: 'bg-red-100 text-red-700',
-      };
-
-      submissionsList!.innerHTML = submissions.map((sub) => `
-        <div class="rounded-xl border bg-white p-6">
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900">${sub.company_name}</h3>
-              ${sub.company_domain ? `<p class="text-sm text-gray-500">${sub.company_domain}</p>` : ''}
-            </div>
-            <span class="rounded-full px-3 py-1 text-xs font-medium ${statusColors[sub.status] || 'bg-gray-100 text-gray-700'}">
-              ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-            </span>
-          </div>
-          <div class="mt-4 flex items-center gap-4 text-sm text-gray-500">
-            <span>Submitted ${new Date(sub.created_at).toLocaleDateString()}</span>
-            ${sub.reviewed_at ? `<span>Reviewed ${new Date(sub.reviewed_at).toLocaleDateString()}</span>` : ''}
-          </div>
-          ${sub.admin_notes ? `
-            <div class="mt-4 rounded-lg bg-gray-50 p-3">
-              <p class="text-sm text-gray-600"><strong>Admin notes:</strong> ${sub.admin_notes}</p>
-            </div>
-          ` : ''}
-        </div>
-      `).join('');
-    }
-  }
-
-  init();
+  document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  });
 </script>
