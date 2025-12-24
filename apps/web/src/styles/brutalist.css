@@ -153,6 +153,12 @@ a:hover {
   border-color: var(--brutal-black);
 }
 
+.btn-brutal--yellow:hover {
+  background: var(--brutal-black);
+  color: var(--brutal-yellow);
+  border-color: var(--brutal-black);
+}
+
 /* BRUTAL CARDS */
 .card-brutal {
   background: var(--brutal-white);
