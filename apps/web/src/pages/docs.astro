@@ -1,0 +1,368 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const listCompaniesResponse = `{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Acme Inc",
+      "slug": "acme-inc",
+      "domain": "acme.com",
+      "description": "A sample company",
+      "website_url": "https://acme.com",
+      "is_verified": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "has_more": true
+  }
+}`;
+
+const getCompanyResponse = `{
+  "data": {
+    "id": "uuid",
+    "name": "Acme Inc",
+    "slug": "acme-inc",
+    "domain": "acme.com",
+    "description": "A sample company",
+    "website_url": "https://acme.com",
+    "is_verified": true,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}`;
+
+const getLogosResponse = `{
+  "data": {
+    "company": {
+      "id": "uuid",
+      "name": "Acme Inc",
+      "slug": "acme-inc"
+    },
+    "logos": [
+      {
+        "id": "uuid",
+        "format": "svg",
+        "variant": "primary",
+        "storage_path": "https://storage.assetpipe.com/logos/acme-inc/primary.svg",
+        "width": null,
+        "height": null,
+        "file_size": 2048,
+        "created_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}`;
+
+const getBrandKitResponse = `{
+  "data": {
+    "company": {
+      "id": "uuid",
+      "name": "Acme Inc",
+      "slug": "acme-inc"
+    },
+    "brand_kit": {
+      "id": "uuid",
+      "primary_color": "#FF5733",
+      "secondary_colors": ["#33FF57", "#3357FF"],
+      "fonts": {"heading": "Inter", "body": "Open Sans"},
+      "guidelines_url": "https://acme.com/brand",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  }
+}`;
+
+const errorResponse = `{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message"
+  }
+}`;
+---
+
+<Layout title="API Documentation">
+  <div class="mx-auto max-w-4xl px-4 py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">API Documentation</h1>
+      <p class="mt-2 text-gray-600">
+        Access company logos programmatically with our REST API.
+      </p>
+    </div>
+
+    <div class="mb-8 rounded-xl border-2 border-brand-200 bg-brand-50 p-6">
+      <h2 class="mb-2 text-lg font-semibold text-brand-900">Getting Started</h2>
+      <p class="text-brand-700">
+        To use the API, you'll need an API key.
+        <a href="/dashboard/api-keys" class="underline hover:text-brand-900">Generate one in your dashboard</a>.
+      </p>
+    </div>
+
+    <div class="mb-8">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900">Base URL</h2>
+      <pre class="rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>https://api.assetpipe.com</code></pre>
+    </div>
+
+    <div class="mb-8">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900">Authentication</h2>
+      <p class="mb-4 text-gray-600">
+        Include your API key in the <code class="rounded bg-gray-100 px-1 py-0.5">Authorization</code> header:
+      </p>
+      <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+    </div>
+
+    <div class="mb-8">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900">Rate Limiting</h2>
+      <p class="mb-4 text-gray-600">
+        API requests are limited to <strong>100 requests per minute</strong> per API key.
+        Rate limit headers are included in every response:
+      </p>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left font-medium text-gray-700">Header</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y">
+          <tr>
+            <td class="px-3 py-2"><code>X-RateLimit-Limit</code></td>
+            <td class="px-3 py-2 text-gray-600">Max requests per window (100)</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>X-RateLimit-Remaining</code></td>
+            <td class="px-3 py-2 text-gray-600">Remaining requests in current window</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>X-RateLimit-Reset</code></td>
+            <td class="px-3 py-2 text-gray-600">Unix timestamp when the window resets</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="mt-4 text-sm text-gray-500">
+        If you exceed the limit, you'll receive a 429 status with a <code>Retry-After</code> header.
+      </p>
+    </div>
+
+    <div class="space-y-8">
+      <h2 class="text-xl font-semibold text-gray-900">Endpoints</h2>
+
+      <!-- List Companies -->
+      <div class="rounded-xl border bg-white p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
+          <code class="text-lg font-medium">/v1/companies</code>
+        </div>
+        <p class="mb-4 text-gray-600">List all companies with pagination.</p>
+
+        <h4 class="mb-2 font-medium text-gray-700">Query Parameters</h4>
+        <table class="mb-4 w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Parameter</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Type</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-3 py-2"><code>page</code></td>
+              <td class="px-3 py-2 text-gray-500">integer</td>
+              <td class="px-3 py-2 text-gray-600">Page number (default: 1)</td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2"><code>limit</code></td>
+              <td class="px-3 py-2 text-gray-500">integer</td>
+              <td class="px-3 py-2 text-gray-600">Results per page (default: 20, max: 100)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.assetpipe.com/v1/companies?page=1&limit=10</code></pre>
+
+        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={listCompaniesResponse} /></pre>
+      </div>
+
+      <!-- Get Company -->
+      <div class="rounded-xl border bg-white p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
+          <code class="text-lg font-medium">/v1/companies/:slug</code>
+        </div>
+        <p class="mb-4 text-gray-600">Get details for a specific company.</p>
+
+        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.assetpipe.com/v1/companies/acme-inc</code></pre>
+
+        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={getCompanyResponse} /></pre>
+      </div>
+
+      <!-- Get Logos -->
+      <div class="rounded-xl border bg-white p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
+          <code class="text-lg font-medium">/v1/companies/:slug/logos</code>
+        </div>
+        <p class="mb-4 text-gray-600">Get all logos for a company.</p>
+
+        <h4 class="mb-2 font-medium text-gray-700">Query Parameters</h4>
+        <table class="mb-4 w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Parameter</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Type</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-3 py-2"><code>format</code></td>
+              <td class="px-3 py-2 text-gray-500">string</td>
+              <td class="px-3 py-2 text-gray-600">Filter by format: svg or png</td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2"><code>variant</code></td>
+              <td class="px-3 py-2 text-gray-500">string</td>
+              <td class="px-3 py-2 text-gray-600">Filter by variant: primary, icon, wordmark, dark, light</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.assetpipe.com/v1/companies/acme-inc/logos?format=svg"</code></pre>
+
+        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={getLogosResponse} /></pre>
+      </div>
+
+      <!-- Get Single Logo -->
+      <div class="rounded-xl border bg-white p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
+          <code class="text-lg font-medium">/v1/logos/:id</code>
+        </div>
+        <p class="mb-4 text-gray-600">Get details for a specific logo by ID.</p>
+
+        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.assetpipe.com/v1/logos/uuid</code></pre>
+      </div>
+
+      <!-- Search -->
+      <div class="rounded-xl border bg-white p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
+          <code class="text-lg font-medium">/v1/search</code>
+        </div>
+        <p class="mb-4 text-gray-600">Search for companies by name or domain.</p>
+
+        <h4 class="mb-2 font-medium text-gray-700">Query Parameters</h4>
+        <table class="mb-4 w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Parameter</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Type</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-3 py-2"><code>q</code></td>
+              <td class="px-3 py-2 text-gray-500">string</td>
+              <td class="px-3 py-2 text-gray-600">Search query (required)</td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2"><code>limit</code></td>
+              <td class="px-3 py-2 text-gray-500">integer</td>
+              <td class="px-3 py-2 text-gray-600">Max results (default: 10, max: 50)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.assetpipe.com/v1/search?q=acme&limit=10"</code></pre>
+      </div>
+
+      <!-- Brand Kit -->
+      <div class="rounded-xl border bg-white p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
+          <code class="text-lg font-medium">/v1/companies/:slug/brand-kit</code>
+        </div>
+        <p class="mb-4 text-gray-600">Get brand kit information for a company (colors, fonts, guidelines).</p>
+
+        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.assetpipe.com/v1/companies/acme-inc/brand-kit</code></pre>
+
+        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={getBrandKitResponse} /></pre>
+      </div>
+    </div>
+
+    <div class="mt-12 rounded-xl bg-gray-100 p-6">
+      <h2 class="mb-4 text-lg font-semibold text-gray-900">Error Responses</h2>
+      <p class="mb-4 text-gray-600">All errors follow this format:</p>
+      <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={errorResponse} /></pre>
+
+      <h4 class="mt-4 mb-2 font-medium text-gray-700">Error Codes</h4>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left font-medium text-gray-700">Code</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-700">Status</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y">
+          <tr>
+            <td class="px-3 py-2"><code>UNAUTHORIZED</code></td>
+            <td class="px-3 py-2 text-gray-500">401</td>
+            <td class="px-3 py-2 text-gray-600">Missing or invalid API key</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>FORBIDDEN</code></td>
+            <td class="px-3 py-2 text-gray-500">403</td>
+            <td class="px-3 py-2 text-gray-600">API key deactivated</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>NOT_FOUND</code></td>
+            <td class="px-3 py-2 text-gray-500">404</td>
+            <td class="px-3 py-2 text-gray-600">Resource not found</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>RATE_LIMITED</code></td>
+            <td class="px-3 py-2 text-gray-500">429</td>
+            <td class="px-3 py-2 text-gray-600">Rate limit exceeded</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>DATABASE_ERROR</code></td>
+            <td class="px-3 py-2 text-gray-500">500</td>
+            <td class="px-3 py-2 text-gray-600">Database query failed</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2"><code>INTERNAL_ERROR</code></td>
+            <td class="px-3 py-2 text-gray-500">500</td>
+            <td class="px-3 py-2 text-gray-600">Unexpected server error</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-8 text-center text-sm text-gray-500">
+      <p>
+        Need help? <a href="mailto:support@assetpipe.com" class="text-brand-600 hover:underline">Contact support</a>
+      </p>
+    </div>
+  </div>
+</Layout>

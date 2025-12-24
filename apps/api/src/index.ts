@@ -5,11 +5,13 @@ import { companies } from './routes/companies';
 import { logos } from './routes/logos';
 import { search } from './routes/search';
 import { apiKeyAuth } from './middleware/api-key';
+import { rateLimit } from './middleware/rate-limit';
 
 export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
   LOGOS_BUCKET: R2Bucket;
+  RATE_LIMIT_KV: KVNamespace;
   ENVIRONMENT: string;
 }
 
@@ -34,9 +36,10 @@ app.get('/', (c) => {
   });
 });
 
-// API v1 routes (require API key)
+// API v1 routes (require API key + rate limiting)
 const v1 = new Hono<{ Bindings: Env }>();
 v1.use('*', apiKeyAuth);
+v1.use('*', rateLimit({ windowMs: 60_000, maxRequests: 100 })); // 100 req/min
 v1.route('/companies', companies);
 v1.route('/logos', logos);
 v1.route('/search', search);

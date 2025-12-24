@@ -24,12 +24,23 @@ const { title, description = 'Open-source platform for company logos and brand a
           <a href="/browse" class="text-gray-600 hover:text-gray-900">Browse</a>
           <a href="/submit" class="text-gray-600 hover:text-gray-900">Submit</a>
           <a href="/docs" class="text-gray-600 hover:text-gray-900">API Docs</a>
-          <a
-            href="/login"
-            class="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
-          >
-            Sign In
-          </a>
+          <a href="/admin" id="admin-link" class="hidden text-gray-600 hover:text-gray-900">Admin</a>
+          <div id="auth-buttons">
+            <a
+              href="/login"
+              id="login-link"
+              class="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
+            >
+              Sign In
+            </a>
+            <a
+              href="/dashboard"
+              id="dashboard-link"
+              class="hidden rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
+            >
+              Dashboard
+            </a>
+          </div>
         </div>
       </nav>
     </header>
@@ -58,3 +69,31 @@ const { title, description = 'Open-source platform for company logos and brand a
   @tailwind components;
   @tailwind utilities;
 </style>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  import { isAdmin } from '../lib/config';
+
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const loginLink = document.getElementById('login-link');
+  const dashboardLink = document.getElementById('dashboard-link');
+  const adminLink = document.getElementById('admin-link');
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    loginLink?.classList.add('hidden');
+    dashboardLink?.classList.remove('hidden');
+
+    // Show admin link for admins
+    if (isAdmin(user.email)) {
+      adminLink?.classList.remove('hidden');
+    }
+  } else {
+    loginLink?.classList.remove('hidden');
+    dashboardLink?.classList.add('hidden');
+  }
+</script>

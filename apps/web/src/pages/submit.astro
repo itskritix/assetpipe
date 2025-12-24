@@ -1,0 +1,298 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Submit a Logo">
+  <div class="mx-auto max-w-2xl px-4 py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Submit a Logo</h1>
+      <p class="mt-2 text-gray-600">
+        Help grow our library by submitting logos for companies we don't have yet.
+        All submissions are reviewed before being published.
+      </p>
+    </div>
+
+    <div class="rounded-xl border bg-white p-6 shadow-sm">
+      <form id="submit-form" class="space-y-6">
+        <div>
+          <label for="company-name" class="block text-sm font-medium text-gray-700">
+            Company Name *
+          </label>
+          <input
+            type="text"
+            id="company-name"
+            name="company_name"
+            required
+            placeholder="e.g., Acme Inc."
+            class="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+          />
+        </div>
+
+        <div>
+          <label for="company-domain" class="block text-sm font-medium text-gray-700">
+            Company Domain
+          </label>
+          <input
+            type="text"
+            id="company-domain"
+            name="company_domain"
+            placeholder="e.g., acme.com"
+            class="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Logo Files *
+          </label>
+          <p class="mt-1 text-sm text-gray-500">
+            Upload SVG and/or PNG files. SVG is preferred for best quality.
+          </p>
+          <div
+            id="drop-zone"
+            class="mt-2 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 transition hover:border-brand-400"
+          >
+            <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-600">
+              Drag and drop files here, or
+              <label for="file-input" class="cursor-pointer text-brand-600 hover:underline">
+                browse
+              </label>
+            </p>
+            <input
+              type="file"
+              id="file-input"
+              name="files"
+              multiple
+              accept=".svg,.png"
+              class="hidden"
+            />
+            <p class="mt-1 text-xs text-gray-500">SVG, PNG up to 5MB each</p>
+          </div>
+          <div id="file-list" class="mt-4 space-y-2"></div>
+        </div>
+
+        <div>
+          <label for="variant" class="block text-sm font-medium text-gray-700">
+            Logo Variant
+          </label>
+          <select
+            id="variant"
+            name="variant"
+            class="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+          >
+            <option value="primary">Primary (full logo)</option>
+            <option value="icon">Icon only</option>
+            <option value="wordmark">Wordmark (text only)</option>
+            <option value="dark">Dark background version</option>
+            <option value="light">Light background version</option>
+          </select>
+        </div>
+
+        <div class="rounded-lg bg-yellow-50 p-4">
+          <p class="text-sm text-yellow-800">
+            <strong>Note:</strong> By submitting, you confirm that:
+          </p>
+          <ul class="mt-2 list-inside list-disc text-sm text-yellow-700">
+            <li>You have the right to share this logo</li>
+            <li>The logo is accurate and up-to-date</li>
+            <li>You understand submissions are reviewed before publishing</li>
+          </ul>
+        </div>
+
+        <div id="auth-notice" class="rounded-lg bg-blue-50 p-4">
+          <p class="text-sm text-blue-800">
+            <strong>Sign in required:</strong> You need to be signed in to submit logos.
+            <a href="/login" class="underline hover:text-blue-900">Sign in here</a>
+          </p>
+        </div>
+
+        <button
+          type="submit"
+          id="submit-btn"
+          disabled
+          class="w-full rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Submit for Review
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-8 text-center text-sm text-gray-500">
+      <p>
+        Looking for a specific logo? <a href="/browse" class="text-brand-600 hover:underline">Browse existing logos</a>
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const fileList = document.getElementById('file-list');
+  const form = document.getElementById('submit-form');
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const authNotice = document.getElementById('auth-notice');
+
+  let selectedFiles: File[] = [];
+  let currentUser: { id: string } | null = null;
+  let isSubmitting = false;
+
+  // Check auth status
+  async function checkAuth() {
+    const { data: { user } } = await supabase.auth.getUser();
+    currentUser = user;
+
+    if (user) {
+      authNotice?.classList.add('hidden');
+      submitBtn.disabled = false;
+    } else {
+      authNotice?.classList.remove('hidden');
+      submitBtn.disabled = true;
+    }
+  }
+
+  checkAuth();
+
+  // Drag and drop handling
+  dropZone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-brand-500', 'bg-brand-50');
+  });
+
+  dropZone?.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-brand-500', 'bg-brand-50');
+  });
+
+  dropZone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-brand-500', 'bg-brand-50');
+    const files = e.dataTransfer?.files;
+    if (files) handleFiles(files);
+  });
+
+  fileInput?.addEventListener('change', () => {
+    if (fileInput.files) handleFiles(fileInput.files);
+  });
+
+  function handleFiles(files: FileList) {
+    for (const file of Array.from(files)) {
+      if (file.type === 'image/svg+xml' || file.type === 'image/png') {
+        if (file.size <= 5 * 1024 * 1024) {
+          selectedFiles.push(file);
+        } else {
+          alert(`${file.name} is too large. Max size is 5MB.`);
+        }
+      } else {
+        alert(`${file.name} is not a valid file type. Only SVG and PNG are allowed.`);
+      }
+    }
+    renderFileList();
+  }
+
+  function renderFileList() {
+    if (!fileList) return;
+    fileList.innerHTML = selectedFiles.map((file, index) => `
+      <div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2">
+        <div class="flex items-center gap-3">
+          <span class="rounded bg-gray-200 px-2 py-1 text-xs font-medium uppercase">
+            ${file.name.split('.').pop()}
+          </span>
+          <span class="text-sm text-gray-700">${file.name}</span>
+          <span class="text-xs text-gray-500">(${(file.size / 1024).toFixed(1)} KB)</span>
+        </div>
+        <button type="button" data-index="${index}" class="remove-file text-red-500 hover:text-red-700">
+          Remove
+        </button>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.remove-file').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt((e.target as HTMLElement).dataset.index || '0');
+        selectedFiles.splice(index, 1);
+        renderFileList();
+      });
+    });
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (isSubmitting) return;
+
+    if (!currentUser) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (selectedFiles.length === 0) {
+      alert('Please select at least one logo file.');
+      return;
+    }
+
+    isSubmitting = true;
+
+    const companyName = (document.getElementById('company-name') as HTMLInputElement).value;
+    const companyDomain = (document.getElementById('company-domain') as HTMLInputElement).value;
+    const variant = (document.getElementById('variant') as HTMLSelectElement).value;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    try {
+      // Create the submission record
+      const { data: submission, error: subError } = await supabase
+        .from('submissions')
+        .insert({
+          user_id: currentUser.id,
+          company_name: companyName,
+          company_domain: companyDomain || null,
+        })
+        .select()
+        .single();
+
+      if (subError) throw subError;
+
+      // Upload files and create file records
+      for (const file of selectedFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${currentUser.id}/${submission.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('submissions')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { error: fileError } = await supabase
+          .from('submission_files')
+          .insert({
+            submission_id: submission.id,
+            storage_path: fileName,
+            format: fileExt,
+            variant: variant,
+          });
+
+        if (fileError) throw fileError;
+      }
+
+      alert('Submission successful! Your logo will be reviewed by our team.');
+      window.location.href = '/dashboard/submissions';
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Failed to submit. Please try again.');
+      isSubmitting = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit for Review';
+    }
+  });
+</script>

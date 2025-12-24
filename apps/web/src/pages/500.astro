@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Server Error">
+  <div class="flex min-h-[60vh] items-center justify-center px-4">
+    <div class="text-center">
+      <h1 class="text-9xl font-bold text-red-500">500</h1>
+      <h2 class="mt-4 text-2xl font-semibold text-gray-900">Server Error</h2>
+      <p class="mt-2 text-gray-600">
+        Something went wrong on our end. Please try again later.
+      </p>
+      <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a
+          href="/"
+          class="rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700"
+        >
+          Go Home
+        </a>
+        <button
+          onclick="window.location.reload()"
+          class="rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 transition hover:bg-gray-50"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>
