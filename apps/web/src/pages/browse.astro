@@ -1,0 +1,109 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { supabase } from '../lib/supabase';
+
+interface Logo {
+  id: string;
+  format: string;
+  variant: string;
+  storage_path: string;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  slug: string;
+  domain: string | null;
+  logos: Logo[];
+}
+
+const searchQuery = Astro.url.searchParams.get('q') || '';
+
+const { data } = await supabase
+  .from('companies')
+  .select(`
+    id,
+    name,
+    slug,
+    domain,
+    logos (
+      id,
+      format,
+      variant,
+      storage_path
+    )
+  `)
+  .ilike('name', searchQuery ? `%${searchQuery}%` : '%')
+  .order('name')
+  .limit(50);
+
+const companies = data as Company[] | null;
+---
+
+<Layout title="Browse Logos">
+  <div class="mx-auto max-w-7xl px-4 py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Browse Logos</h1>
+      <p class="mt-2 text-gray-600">Find and download company logos in SVG and PNG formats.</p>
+    </div>
+
+    <form method="get" class="mb-8">
+      <div class="flex gap-2">
+        <input
+          type="text"
+          name="q"
+          value={searchQuery}
+          placeholder="Search by company name..."
+          class="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+        />
+        <button
+          type="submit"
+          class="rounded-lg bg-brand-600 px-6 py-3 text-white hover:bg-brand-700"
+        >
+          Search
+        </button>
+      </div>
+    </form>
+
+    {companies && companies.length > 0 ? (
+      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {companies.map((company) => (
+          <a
+            href={`/company/${company.slug}`}
+            class="group rounded-xl border bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div class="mb-4 flex h-20 items-center justify-center rounded-lg bg-gray-100">
+              {company.logos && company.logos[0] ? (
+                <img
+                  src={company.logos[0].storage_path}
+                  alt={company.name}
+                  class="h-16 w-auto object-contain"
+                />
+              ) : (
+                <span class="text-2xl font-bold text-gray-400">
+                  {company.name.charAt(0)}
+                </span>
+              )}
+            </div>
+            <h3 class="font-semibold text-gray-900 group-hover:text-brand-600">
+              {company.name}
+            </h3>
+            {company.domain && (
+              <p class="text-sm text-gray-500">{company.domain}</p>
+            )}
+            <p class="mt-2 text-xs text-gray-400">
+              {company.logos?.length || 0} logo{(company.logos?.length || 0) !== 1 ? 's' : ''}
+            </p>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="rounded-xl bg-gray-100 py-16 text-center">
+        <p class="text-gray-600">No logos found{searchQuery ? ` for "${searchQuery}"` : ''}.</p>
+        <a href="/submit" class="mt-4 inline-block text-brand-600 hover:underline">
+          Submit a logo
+        </a>
+      </div>
+    )}
+  </div>
+</Layout>

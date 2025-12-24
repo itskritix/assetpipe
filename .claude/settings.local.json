@@ -4,7 +4,10 @@
       "Bash(git show:*)",
       "Bash(head:*)",
       "Bash(git init:*)",
-      "Bash(node build.js:*)"
+      "Bash(node build.js:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(git add:*)"
     ]
   }
 }

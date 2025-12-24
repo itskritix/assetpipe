@@ -128,3 +128,12 @@ dist
 
 # Cloudflare Worker
 worker/
+.wrangler/
+.dev.vars
+
+# Astro
+.astro/
+.output/
+
+# Supabase
+.supabase/

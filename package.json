@@ -1,16 +1,30 @@
 {
-	"name": "assetpipe",
-	"version": "1.0.0",
-	"main": "index.js",
-	"license": "MIT",
-	"scripts": {
-		"dev": "node build.js && miniflare --watch",
-		"build": "node build.js",
-		"deploy": "node build.js && wrangler publish"
-	},
-	"devDependencies": {
-		"@cloudflare/wrangler": "^1.19.8",
-		"miniflare": "^2.3.0",
-		"prettier": "^2.5.1"
-	}
+  "name": "assetpipe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source platform for company logos and brand assets",
+  "scripts": {
+    "dev:web": "pnpm --filter @assetpipe/web dev",
+    "dev:api": "pnpm --filter @assetpipe/api dev",
+    "build": "pnpm -r build",
+    "build:web": "pnpm --filter @assetpipe/web build",
+    "build:api": "pnpm --filter @assetpipe/api build",
+    "deploy:web": "pnpm --filter @assetpipe/web deploy",
+    "deploy:api": "pnpm --filter @assetpipe/api deploy",
+    "db:migrate": "supabase db push",
+    "db:reset": "supabase db reset",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "keywords": [
+    "logos",
+    "brand-assets",
+    "api",
+    "open-source"
+  ],
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }

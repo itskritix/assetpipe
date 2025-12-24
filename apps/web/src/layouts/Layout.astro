@@ -1,0 +1,60 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Open-source platform for company logos and brand assets' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | AssetPipe</title>
+  </head>
+  <body class="min-h-screen bg-gray-50 text-gray-900">
+    <header class="border-b bg-white">
+      <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+        <a href="/" class="text-xl font-bold text-brand-600">AssetPipe</a>
+        <div class="flex items-center gap-6">
+          <a href="/browse" class="text-gray-600 hover:text-gray-900">Browse</a>
+          <a href="/submit" class="text-gray-600 hover:text-gray-900">Submit</a>
+          <a href="/docs" class="text-gray-600 hover:text-gray-900">API Docs</a>
+          <a
+            href="/login"
+            class="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
+          >
+            Sign In
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="mt-auto border-t bg-white py-8">
+      <div class="mx-auto max-w-7xl px-4 text-center text-gray-500">
+        <p>AssetPipe - Open Source Brand Assets Platform</p>
+        <p class="mt-2 text-sm">
+          <a href="https://github.com/your-repo/assetpipe" class="hover:text-brand-600">
+            GitHub
+          </a>
+          {' '}&middot;{' '}
+          <a href="/api" class="hover:text-brand-600">API</a>
+          {' '}&middot;{' '}
+          <a href="/privacy" class="hover:text-brand-600">Privacy</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+</style>

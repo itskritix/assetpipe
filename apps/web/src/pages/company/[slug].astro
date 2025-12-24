@@ -1,0 +1,218 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { supabase } from '../../lib/supabase';
+
+interface Logo {
+  id: string;
+  format: string;
+  variant: string;
+  storage_path: string;
+  width: number | null;
+  height: number | null;
+  file_size: number | null;
+}
+
+interface BrandKit {
+  id: string;
+  primary_color: string | null;
+  secondary_colors: string[] | null;
+  fonts: Record<string, string> | null;
+  guidelines_url: string | null;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  slug: string;
+  domain: string | null;
+  description: string | null;
+  website_url: string | null;
+  is_verified: boolean;
+  logos: Logo[];
+  brand_kits: BrandKit[];
+}
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/404');
+}
+
+const { data } = await supabase
+  .from('companies')
+  .select(`
+    id,
+    name,
+    slug,
+    domain,
+    description,
+    website_url,
+    is_verified,
+    logos (
+      id,
+      format,
+      variant,
+      storage_path,
+      width,
+      height,
+      file_size
+    ),
+    brand_kits (
+      id,
+      primary_color,
+      secondary_colors,
+      fonts,
+      guidelines_url
+    )
+  `)
+  .eq('slug', slug)
+  .single();
+
+const company = data as Company | null;
+
+if (!company) {
+  return Astro.redirect('/404');
+}
+
+const formatBytes = (bytes: number | null) => {
+  if (!bytes) return 'N/A';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+---
+
+<Layout title={company.name} description={`Download ${company.name} logos in SVG and PNG formats`}>
+  <div class="mx-auto max-w-7xl px-4 py-12">
+    <div class="mb-8 flex items-start justify-between">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-3xl font-bold text-gray-900">{company.name}</h1>
+          {company.is_verified && (
+            <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+              Verified
+            </span>
+          )}
+        </div>
+        {company.domain && (
+          <p class="mt-1 text-gray-500">{company.domain}</p>
+        )}
+        {company.description && (
+          <p class="mt-4 max-w-2xl text-gray-600">{company.description}</p>
+        )}
+        {company.website_url && (
+          <a
+            href={company.website_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-2 inline-block text-brand-600 hover:underline"
+          >
+            Visit website
+          </a>
+        )}
+      </div>
+    </div>
+
+    <div class="mb-12">
+      <h2 class="mb-6 text-xl font-semibold text-gray-900">Logos</h2>
+      {company.logos && company.logos.length > 0 ? (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {company.logos.map((logo) => (
+            <div class="rounded-xl border bg-white p-6">
+              <div class="mb-4 flex h-32 items-center justify-center rounded-lg bg-gray-100">
+                <img
+                  src={logo.storage_path}
+                  alt={`${company.name} ${logo.variant}`}
+                  class="h-24 w-auto object-contain"
+                />
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="font-medium capitalize text-gray-900">{logo.variant}</p>
+                  <p class="text-sm text-gray-500">
+                    {logo.format.toUpperCase()}
+                    {logo.width && logo.height && ` - ${logo.width}x${logo.height}`}
+                  </p>
+                  <p class="text-xs text-gray-400">{formatBytes(logo.file_size)}</p>
+                </div>
+                <a
+                  href={logo.storage_path}
+                  download
+                  class="rounded-lg bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700"
+                >
+                  Download
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p class="text-gray-500">No logos available yet.</p>
+      )}
+    </div>
+
+    {company.brand_kits && company.brand_kits.length > 0 && (
+      <div class="mb-12">
+        <h2 class="mb-6 text-xl font-semibold text-gray-900">Brand Kit</h2>
+        {company.brand_kits.map((kit) => (
+          <div class="rounded-xl border bg-white p-6">
+            {kit.primary_color && (
+              <div class="mb-4">
+                <p class="mb-2 text-sm font-medium text-gray-700">Primary Color</p>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-10 w-10 rounded-lg border"
+                    style={`background-color: ${kit.primary_color}`}
+                  />
+                  <code class="text-sm text-gray-600">{kit.primary_color}</code>
+                </div>
+              </div>
+            )}
+            {kit.secondary_colors && kit.secondary_colors.length > 0 && (
+              <div class="mb-4">
+                <p class="mb-2 text-sm font-medium text-gray-700">Secondary Colors</p>
+                <div class="flex gap-2">
+                  {kit.secondary_colors.map((color) => (
+                    <div class="text-center">
+                      <div
+                        class="h-10 w-10 rounded-lg border"
+                        style={`background-color: ${color}`}
+                      />
+                      <code class="text-xs text-gray-500">{color}</code>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {kit.fonts && (
+              <div class="mb-4">
+                <p class="mb-2 text-sm font-medium text-gray-700">Fonts</p>
+                <p class="text-gray-600">{JSON.stringify(kit.fonts)}</p>
+              </div>
+            )}
+            {kit.guidelines_url && (
+              <a
+                href={kit.guidelines_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-brand-600 hover:underline"
+              >
+                View brand guidelines
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+
+    <div class="rounded-xl bg-gray-100 p-6">
+      <h2 class="mb-4 text-lg font-semibold text-gray-900">API Access</h2>
+      <p class="mb-4 text-gray-600">Get this logo programmatically via our API:</p>
+      <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.assetpipe.com/v1/companies/{company.slug}/logos</code></pre>
+      <a href="/docs" class="mt-4 inline-block text-brand-600 hover:underline">
+        View API documentation
+      </a>
+    </div>
+  </div>
+</Layout>
