@@ -1,54 +1,54 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const listCompaniesResponse = `{
+// Code examples as variables to avoid Astro template issues with curly braces
+const searchResponse = `{
   "data": [
     {
       "id": "uuid",
-      "name": "Acme Inc",
-      "slug": "acme-inc",
-      "domain": "acme.com",
-      "description": "A sample company",
-      "website_url": "https://acme.com",
+      "name": "Stripe",
+      "slug": "stripe",
+      "domain": "stripe.com",
       "is_verified": true,
-      "created_at": "2024-01-01T00:00:00Z"
+      "logos": [...]
     }
   ],
+  "query": "stripe",
   "pagination": {
     "page": 1,
-    "limit": 10,
-    "total": 100,
-    "has_more": true
+    "limit": 5,
+    "total": 1,
+    "has_more": false
   }
 }`;
 
-const getCompanyResponse = `{
+const companyResponse = `{
   "data": {
     "id": "uuid",
-    "name": "Acme Inc",
-    "slug": "acme-inc",
-    "domain": "acme.com",
-    "description": "A sample company",
-    "website_url": "https://acme.com",
+    "name": "Stripe",
+    "slug": "stripe",
+    "domain": "stripe.com",
+    "description": "Online payment processing",
+    "website_url": "https://stripe.com",
     "is_verified": true,
     "created_at": "2024-01-01T00:00:00Z",
     "updated_at": "2024-01-01T00:00:00Z"
   }
 }`;
 
-const getLogosResponse = `{
+const logosResponse = `{
   "data": {
     "company": {
       "id": "uuid",
-      "name": "Acme Inc",
-      "slug": "acme-inc"
+      "name": "Stripe",
+      "slug": "stripe"
     },
     "logos": [
       {
         "id": "uuid",
         "format": "svg",
         "variant": "primary",
-        "storage_path": "https://storage.assetpipe.com/logos/acme-inc/primary.svg",
+        "storage_path": "https://...",
         "width": null,
         "height": null,
         "file_size": 2048,
@@ -58,311 +58,1104 @@ const getLogosResponse = `{
   }
 }`;
 
-const getBrandKitResponse = `{
+const brandKitResponse = `{
   "data": {
-    "company": {
-      "id": "uuid",
-      "name": "Acme Inc",
-      "slug": "acme-inc"
-    },
+    "company": { ... },
     "brand_kit": {
       "id": "uuid",
-      "primary_color": "#FF5733",
-      "secondary_colors": ["#33FF57", "#3357FF"],
-      "fonts": {"heading": "Inter", "body": "Open Sans"},
-      "guidelines_url": "https://acme.com/brand",
-      "created_at": "2024-01-01T00:00:00Z"
+      "primary_color": "#635BFF",
+      "secondary_colors": ["#00D4FF"],
+      "fonts": {
+        "heading": "Inter",
+        "body": "Inter"
+      },
+      "guidelines_url": "https://stripe.com/brand"
     }
   }
 }`;
 
 const errorResponse = `{
   "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable error message"
+    "code": "NOT_FOUND",
+    "message": "Company 'acme' not found"
   }
 }`;
 ---
 
 <Layout title="API Documentation">
-  <div class="mx-auto max-w-4xl px-4 py-12">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">API Documentation</h1>
-      <p class="mt-2 text-gray-600">
-        Access company logos programmatically with our REST API.
+  <!-- DOCS HEADER -->
+  <section class="docs-header">
+    <div class="docs-header__content">
+      <div class="docs-header__title">
+        <span class="tag-brutal tag-brutal--dark">DEVELOPERS</span>
+        <h1>API<br/>DOCS</h1>
+      </div>
+      <p class="docs-header__desc">
+        ACCESS COMPANY LOGOS PROGRAMMATICALLY WITH OUR REST API.
+        PERFECT FOR BUILDING INTEGRATIONS, DASHBOARDS, OR DESIGN TOOLS.
       </p>
     </div>
+  </section>
 
-    <div class="mb-8 rounded-xl border-2 border-brand-200 bg-brand-50 p-6">
-      <h2 class="mb-2 text-lg font-semibold text-brand-900">Getting Started</h2>
-      <p class="text-brand-700">
-        To use the API, you'll need an API key.
-        <a href="/dashboard/api-keys" class="underline hover:text-brand-900">Generate one in your dashboard</a>.
-      </p>
-    </div>
-
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900">Base URL</h2>
-      <pre class="rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>https://api.assetpipe.com</code></pre>
-    </div>
-
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900">Authentication</h2>
-      <p class="mb-4 text-gray-600">
-        Include your API key in the <code class="rounded bg-gray-100 px-1 py-0.5">Authorization</code> header:
-      </p>
-      <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>Authorization: Bearer YOUR_API_KEY</code></pre>
-    </div>
-
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900">Rate Limiting</h2>
-      <p class="mb-4 text-gray-600">
-        API requests are limited to <strong>100 requests per minute</strong> per API key.
-        Rate limit headers are included in every response:
-      </p>
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-3 py-2 text-left font-medium text-gray-700">Header</th>
-            <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y">
-          <tr>
-            <td class="px-3 py-2"><code>X-RateLimit-Limit</code></td>
-            <td class="px-3 py-2 text-gray-600">Max requests per window (100)</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>X-RateLimit-Remaining</code></td>
-            <td class="px-3 py-2 text-gray-600">Remaining requests in current window</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>X-RateLimit-Reset</code></td>
-            <td class="px-3 py-2 text-gray-600">Unix timestamp when the window resets</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="mt-4 text-sm text-gray-500">
-        If you exceed the limit, you'll receive a 429 status with a <code>Retry-After</code> header.
-      </p>
-    </div>
-
-    <div class="space-y-8">
-      <h2 class="text-xl font-semibold text-gray-900">Endpoints</h2>
-
-      <!-- List Companies -->
-      <div class="rounded-xl border bg-white p-6">
-        <div class="mb-4 flex items-center gap-3">
-          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
-          <code class="text-lg font-medium">/v1/companies</code>
-        </div>
-        <p class="mb-4 text-gray-600">List all companies with pagination.</p>
-
-        <h4 class="mb-2 font-medium text-gray-700">Query Parameters</h4>
-        <table class="mb-4 w-full text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Parameter</th>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Type</th>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y">
-            <tr>
-              <td class="px-3 py-2"><code>page</code></td>
-              <td class="px-3 py-2 text-gray-500">integer</td>
-              <td class="px-3 py-2 text-gray-600">Page number (default: 1)</td>
-            </tr>
-            <tr>
-              <td class="px-3 py-2"><code>limit</code></td>
-              <td class="px-3 py-2 text-gray-500">integer</td>
-              <td class="px-3 py-2 text-gray-600">Results per page (default: 20, max: 100)</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.assetpipe.com/v1/companies?page=1&limit=10</code></pre>
-
-        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={listCompaniesResponse} /></pre>
+  <!-- QUICK START -->
+  <section class="docs-quickstart">
+    <div class="docs-container">
+      <div class="docs-section-header">
+        <span class="section-number">01</span>
+        <h2>QUICK START</h2>
       </div>
 
-      <!-- Get Company -->
-      <div class="rounded-xl border bg-white p-6">
-        <div class="mb-4 flex items-center gap-3">
-          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
-          <code class="text-lg font-medium">/v1/companies/:slug</code>
+      <div class="quickstart-steps">
+        <div class="quickstart-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>GET YOUR API KEY</h3>
+            <p>Generate an API key from your dashboard. Keep it secure!</p>
+            <a href="/dashboard/api-keys" class="btn-brutal btn-brutal--small">
+              GET API KEY →
+            </a>
+          </div>
         </div>
-        <p class="mb-4 text-gray-600">Get details for a specific company.</p>
 
-        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.assetpipe.com/v1/companies/acme-inc</code></pre>
+        <div class="quickstart-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>MAKE YOUR FIRST REQUEST</h3>
+            <p>Use your API key in the Authorization header.</p>
+          </div>
+        </div>
 
-        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={getCompanyResponse} /></pre>
+        <div class="quickstart-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>BUILD SOMETHING GREAT</h3>
+            <p>Access logos, search companies, download assets.</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Get Logos -->
-      <div class="rounded-xl border bg-white p-6">
-        <div class="mb-4 flex items-center gap-3">
-          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
-          <code class="text-lg font-medium">/v1/companies/:slug/logos</code>
+      <div class="api-preview">
+        <div class="code-header">
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <span class="code-filename">EXAMPLE REQUEST</span>
         </div>
-        <p class="mb-4 text-gray-600">Get all logos for a company.</p>
+        <pre class="code-block"><code># Search for a company
+curl -X GET "https://api.assetpipe.dev/v1/search?q=stripe" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+      </div>
+    </div>
+  </section>
 
-        <h4 class="mb-2 font-medium text-gray-700">Query Parameters</h4>
-        <table class="mb-4 w-full text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Parameter</th>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Type</th>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y">
-            <tr>
-              <td class="px-3 py-2"><code>format</code></td>
-              <td class="px-3 py-2 text-gray-500">string</td>
-              <td class="px-3 py-2 text-gray-600">Filter by format: svg or png</td>
-            </tr>
-            <tr>
-              <td class="px-3 py-2"><code>variant</code></td>
-              <td class="px-3 py-2 text-gray-500">string</td>
-              <td class="px-3 py-2 text-gray-600">Filter by variant: primary, icon, wordmark, dark, light</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://api.assetpipe.com/v1/companies/acme-inc/logos?format=svg"</code></pre>
-
-        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={getLogosResponse} /></pre>
+  <!-- AUTHENTICATION -->
+  <section class="docs-section">
+    <div class="docs-container">
+      <div class="docs-section-header">
+        <span class="section-number">02</span>
+        <h2>AUTHENTICATION</h2>
       </div>
 
-      <!-- Get Single Logo -->
-      <div class="rounded-xl border bg-white p-6">
-        <div class="mb-4 flex items-center gap-3">
-          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
-          <code class="text-lg font-medium">/v1/logos/:id</code>
-        </div>
-        <p class="mb-4 text-gray-600">Get details for a specific logo by ID.</p>
+      <div class="docs-grid">
+        <div class="docs-content">
+          <p>
+            All API requests require authentication via an API key.
+            Include your key in the <code>Authorization</code> header as a Bearer token.
+          </p>
 
-        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.assetpipe.com/v1/logos/uuid</code></pre>
+          <div class="notice-brutal notice-brutal--warning">
+            <div class="notice-icon">!</div>
+            <div class="notice-content">
+              <h3>KEEP YOUR KEY SECRET</h3>
+              <p>Never expose your API key in client-side code or public repositories.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-preview">
+          <div class="code-header">
+            <div class="code-dot"></div>
+            <div class="code-dot"></div>
+            <div class="code-dot"></div>
+            <span class="code-filename">HEADER</span>
+          </div>
+          <pre class="code-block"><code>Authorization: Bearer ap_xxxxxxxxxxxxxxxx</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BASE URL & RATE LIMITS -->
+  <section class="docs-section docs-section--dark">
+    <div class="docs-container">
+      <div class="info-cards">
+        <div class="info-card">
+          <span class="info-card__label">BASE URL</span>
+          <code class="info-card__value">https://api.assetpipe.dev</code>
+        </div>
+        <div class="info-card">
+          <span class="info-card__label">RATE LIMIT</span>
+          <span class="info-card__value">100 REQ/MIN</span>
+        </div>
+        <div class="info-card">
+          <span class="info-card__label">FORMAT</span>
+          <span class="info-card__value">JSON</span>
+        </div>
+      </div>
+
+      <div class="rate-limit-info">
+        <h3>RATE LIMIT HEADERS</h3>
+        <div class="table-brutal">
+          <table>
+            <thead>
+              <tr>
+                <th>HEADER</th>
+                <th>DESCRIPTION</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>X-RateLimit-Limit</code></td>
+                <td>Maximum requests per window (100)</td>
+              </tr>
+              <tr>
+                <td><code>X-RateLimit-Remaining</code></td>
+                <td>Requests remaining in current window</td>
+              </tr>
+              <tr>
+                <td><code>X-RateLimit-Reset</code></td>
+                <td>Unix timestamp when window resets</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENDPOINTS -->
+  <section class="docs-section">
+    <div class="docs-container">
+      <div class="docs-section-header">
+        <span class="section-number">03</span>
+        <h2>ENDPOINTS</h2>
       </div>
 
       <!-- Search -->
-      <div class="rounded-xl border bg-white p-6">
-        <div class="mb-4 flex items-center gap-3">
-          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
-          <code class="text-lg font-medium">/v1/search</code>
+      <div class="endpoint-card" id="search">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/search</code>
         </div>
-        <p class="mb-4 text-gray-600">Search for companies by name or domain.</p>
+        <p class="endpoint-desc">Search for companies by name or domain.</p>
 
-        <h4 class="mb-2 font-medium text-gray-700">Query Parameters</h4>
-        <table class="mb-4 w-full text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Parameter</th>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Type</th>
-              <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y">
-            <tr>
-              <td class="px-3 py-2"><code>q</code></td>
-              <td class="px-3 py-2 text-gray-500">string</td>
-              <td class="px-3 py-2 text-gray-600">Search query (required)</td>
-            </tr>
-            <tr>
-              <td class="px-3 py-2"><code>limit</code></td>
-              <td class="px-3 py-2 text-gray-500">integer</td>
-              <td class="px-3 py-2 text-gray-600">Max results (default: 10, max: 50)</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="endpoint-details">
+          <h4>QUERY PARAMETERS</h4>
+          <div class="table-brutal">
+            <table>
+              <thead>
+                <tr>
+                  <th>PARAMETER</th>
+                  <th>TYPE</th>
+                  <th>REQUIRED</th>
+                  <th>DESCRIPTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>q</code></td>
+                  <td>string</td>
+                  <td><span class="required-badge">YES</span></td>
+                  <td>Search query (min 2 characters)</td>
+                </tr>
+                <tr>
+                  <td><code>page</code></td>
+                  <td>integer</td>
+                  <td>NO</td>
+                  <td>Page number (default: 1)</td>
+                </tr>
+                <tr>
+                  <td><code>limit</code></td>
+                  <td>integer</td>
+                  <td>NO</td>
+                  <td>Results per page (default: 20, max: 100)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://api.assetpipe.com/v1/search?q=acme&limit=10"</code></pre>
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">REQUEST</span>
+            </div>
+            <pre class="code-block"><code>curl -X GET "https://api.assetpipe.dev/v1/search?q=stripe&limit=5" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+          </div>
+
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">RESPONSE</span>
+            </div>
+            <pre class="code-block"><code set:text={searchResponse} /></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- List Companies -->
+      <div class="endpoint-card" id="list-companies">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/companies</code>
+        </div>
+        <p class="endpoint-desc">List all companies with pagination.</p>
+
+        <div class="endpoint-details">
+          <h4>QUERY PARAMETERS</h4>
+          <div class="table-brutal">
+            <table>
+              <thead>
+                <tr>
+                  <th>PARAMETER</th>
+                  <th>TYPE</th>
+                  <th>DESCRIPTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>page</code></td>
+                  <td>integer</td>
+                  <td>Page number (default: 1)</td>
+                </tr>
+                <tr>
+                  <td><code>limit</code></td>
+                  <td>integer</td>
+                  <td>Results per page (default: 20, max: 100)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">REQUEST</span>
+            </div>
+            <pre class="code-block"><code>curl -X GET "https://api.assetpipe.dev/v1/companies?page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Get Company -->
+      <div class="endpoint-card" id="get-company">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/companies/:slug</code>
+        </div>
+        <p class="endpoint-desc">Get detailed information for a specific company.</p>
+
+        <div class="endpoint-details">
+          <h4>PATH PARAMETERS</h4>
+          <div class="table-brutal">
+            <table>
+              <thead>
+                <tr>
+                  <th>PARAMETER</th>
+                  <th>TYPE</th>
+                  <th>DESCRIPTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>slug</code></td>
+                  <td>string</td>
+                  <td>Company slug (e.g., "stripe", "github")</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">REQUEST</span>
+            </div>
+            <pre class="code-block"><code>curl -X GET "https://api.assetpipe.dev/v1/companies/stripe" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+          </div>
+
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">RESPONSE</span>
+            </div>
+            <pre class="code-block"><code set:text={companyResponse} /></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Get Company Logos -->
+      <div class="endpoint-card" id="get-logos">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/companies/:slug/logos</code>
+        </div>
+        <p class="endpoint-desc">Get all logo variants for a company.</p>
+
+        <div class="endpoint-details">
+          <h4>QUERY PARAMETERS</h4>
+          <div class="table-brutal">
+            <table>
+              <thead>
+                <tr>
+                  <th>PARAMETER</th>
+                  <th>TYPE</th>
+                  <th>DESCRIPTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>format</code></td>
+                  <td>string</td>
+                  <td>Filter by format: <code>svg</code> or <code>png</code></td>
+                </tr>
+                <tr>
+                  <td><code>variant</code></td>
+                  <td>string</td>
+                  <td>Filter by variant: <code>primary</code>, <code>icon</code>, <code>wordmark</code>, etc.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">REQUEST</span>
+            </div>
+            <pre class="code-block"><code>curl -X GET "https://api.assetpipe.dev/v1/companies/stripe/logos?format=svg" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+          </div>
+
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">RESPONSE</span>
+            </div>
+            <pre class="code-block"><code set:text={logosResponse} /></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Get Logo by ID -->
+      <div class="endpoint-card" id="get-logo">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/logos/:id</code>
+        </div>
+        <p class="endpoint-desc">Get metadata for a specific logo by ID.</p>
+
+        <div class="endpoint-details">
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">REQUEST</span>
+            </div>
+            <pre class="code-block"><code>curl -X GET "https://api.assetpipe.dev/v1/logos/uuid" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download Logo -->
+      <div class="endpoint-card" id="download-logo">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/logos/:id/download</code>
+        </div>
+        <p class="endpoint-desc">Download a logo file. Returns the raw image with appropriate content headers.</p>
+
+        <div class="endpoint-details">
+          <h4>RESPONSE HEADERS</h4>
+          <div class="table-brutal">
+            <table>
+              <thead>
+                <tr>
+                  <th>HEADER</th>
+                  <th>VALUE</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Content-Type</code></td>
+                  <td><code>image/svg+xml</code> or <code>image/png</code></td>
+                </tr>
+                <tr>
+                  <td><code>Content-Disposition</code></td>
+                  <td><code>attachment; filename="company-logo.svg"</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">REQUEST</span>
+            </div>
+            <pre class="code-block"><code># Download and save to file
+curl -X GET "https://api.assetpipe.dev/v1/logos/uuid/download" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -o logo.svg</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- View Logo -->
+      <div class="endpoint-card" id="view-logo">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/logos/:id/view</code>
+        </div>
+        <p class="endpoint-desc">View a logo inline. Perfect for embedding in img tags.</p>
+
+        <div class="endpoint-details">
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">HTML</span>
+            </div>
+            <pre class="code-block"><code>&lt;img
+  src="https://api.assetpipe.dev/v1/logos/uuid/view"
+  alt="Company Logo"
+/&gt;</code></pre>
+          </div>
+        </div>
       </div>
 
       <!-- Brand Kit -->
-      <div class="rounded-xl border bg-white p-6">
-        <div class="mb-4 flex items-center gap-3">
-          <span class="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">GET</span>
-          <code class="text-lg font-medium">/v1/companies/:slug/brand-kit</code>
+      <div class="endpoint-card" id="brand-kit">
+        <div class="endpoint-header">
+          <span class="method-tag method-tag--get">GET</span>
+          <code class="endpoint-path">/v1/companies/:slug/brand-kit</code>
         </div>
-        <p class="mb-4 text-gray-600">Get brand kit information for a company (colors, fonts, guidelines).</p>
+        <p class="endpoint-desc">Get brand kit information including colors, fonts, and guidelines.</p>
 
-        <h4 class="mb-2 font-medium text-gray-700">Example</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.assetpipe.com/v1/companies/acme-inc/brand-kit</code></pre>
-
-        <h4 class="mt-4 mb-2 font-medium text-gray-700">Response</h4>
-        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={getBrandKitResponse} /></pre>
+        <div class="endpoint-details">
+          <h4>EXAMPLE</h4>
+          <div class="api-preview">
+            <div class="code-header">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <span class="code-filename">RESPONSE</span>
+            </div>
+            <pre class="code-block"><code set:text={brandKitResponse} /></pre>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="mt-12 rounded-xl bg-gray-100 p-6">
-      <h2 class="mb-4 text-lg font-semibold text-gray-900">Error Responses</h2>
-      <p class="mb-4 text-gray-600">All errors follow this format:</p>
-      <pre class="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100"><code set:text={errorResponse} /></pre>
+  <!-- ERRORS -->
+  <section class="docs-section docs-section--cream">
+    <div class="docs-container">
+      <div class="docs-section-header">
+        <span class="section-number">04</span>
+        <h2>ERRORS</h2>
+      </div>
 
-      <h4 class="mt-4 mb-2 font-medium text-gray-700">Error Codes</h4>
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-3 py-2 text-left font-medium text-gray-700">Code</th>
-            <th class="px-3 py-2 text-left font-medium text-gray-700">Status</th>
-            <th class="px-3 py-2 text-left font-medium text-gray-700">Description</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y">
-          <tr>
-            <td class="px-3 py-2"><code>UNAUTHORIZED</code></td>
-            <td class="px-3 py-2 text-gray-500">401</td>
-            <td class="px-3 py-2 text-gray-600">Missing or invalid API key</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>FORBIDDEN</code></td>
-            <td class="px-3 py-2 text-gray-500">403</td>
-            <td class="px-3 py-2 text-gray-600">API key deactivated</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>NOT_FOUND</code></td>
-            <td class="px-3 py-2 text-gray-500">404</td>
-            <td class="px-3 py-2 text-gray-600">Resource not found</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>RATE_LIMITED</code></td>
-            <td class="px-3 py-2 text-gray-500">429</td>
-            <td class="px-3 py-2 text-gray-600">Rate limit exceeded</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>DATABASE_ERROR</code></td>
-            <td class="px-3 py-2 text-gray-500">500</td>
-            <td class="px-3 py-2 text-gray-600">Database query failed</td>
-          </tr>
-          <tr>
-            <td class="px-3 py-2"><code>INTERNAL_ERROR</code></td>
-            <td class="px-3 py-2 text-gray-500">500</td>
-            <td class="px-3 py-2 text-gray-600">Unexpected server error</td>
-          </tr>
-        </tbody>
-      </table>
+      <p class="docs-intro">All errors follow a consistent format with an error code and human-readable message.</p>
+
+      <div class="api-preview">
+        <div class="code-header">
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <span class="code-filename">ERROR RESPONSE</span>
+        </div>
+        <pre class="code-block"><code set:text={errorResponse} /></pre>
+      </div>
+
+      <h3 class="docs-subheading">ERROR CODES</h3>
+      <div class="table-brutal">
+        <table>
+          <thead>
+            <tr>
+              <th>CODE</th>
+              <th>STATUS</th>
+              <th>DESCRIPTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>INVALID_QUERY</code></td>
+              <td><span class="status-badge status-badge--400">400</span></td>
+              <td>Invalid or missing query parameters</td>
+            </tr>
+            <tr>
+              <td><code>UNAUTHORIZED</code></td>
+              <td><span class="status-badge status-badge--401">401</span></td>
+              <td>Missing or invalid API key</td>
+            </tr>
+            <tr>
+              <td><code>FORBIDDEN</code></td>
+              <td><span class="status-badge status-badge--403">403</span></td>
+              <td>API key has been deactivated</td>
+            </tr>
+            <tr>
+              <td><code>NOT_FOUND</code></td>
+              <td><span class="status-badge status-badge--404">404</span></td>
+              <td>Resource does not exist</td>
+            </tr>
+            <tr>
+              <td><code>RATE_LIMITED</code></td>
+              <td><span class="status-badge status-badge--429">429</span></td>
+              <td>Too many requests - check Retry-After header</td>
+            </tr>
+            <tr>
+              <td><code>DATABASE_ERROR</code></td>
+              <td><span class="status-badge status-badge--500">500</span></td>
+              <td>Database query failed</td>
+            </tr>
+            <tr>
+              <td><code>INTERNAL_ERROR</code></td>
+              <td><span class="status-badge status-badge--500">500</span></td>
+              <td>Unexpected server error</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </section>
 
-    <div class="mt-8 text-center text-sm text-gray-500">
-      <p>
-        Need help? <a href="mailto:support@assetpipe.com" class="text-brand-600 hover:underline">Contact support</a>
-      </p>
+  <!-- CONTRIBUTION GUIDELINES -->
+  <section class="docs-section">
+    <div class="docs-container">
+      <div class="docs-section-header">
+        <span class="section-number">05</span>
+        <h2>CONTRIBUTION GUIDELINES</h2>
+      </div>
+
+      <p class="docs-intro">Help us grow the logo library by submitting high-quality assets.</p>
+
+      <div class="guidelines-grid">
+        <div class="guideline-card">
+          <div class="guideline-icon">+</div>
+          <h3>FILE FORMATS</h3>
+          <ul>
+            <li><strong>SVG PREFERRED</strong> - Vector format for scalability</li>
+            <li><strong>PNG ACCEPTED</strong> - Minimum 512x512px resolution</li>
+            <li><strong>MAX SIZE:</strong> 5MB per file</li>
+          </ul>
+        </div>
+
+        <div class="guideline-card">
+          <div class="guideline-icon">+</div>
+          <h3>LOGO VARIANTS</h3>
+          <ul>
+            <li><strong>PRIMARY</strong> - Main logo with icon + wordmark</li>
+            <li><strong>ICON</strong> - Standalone icon/symbol</li>
+            <li><strong>WORDMARK</strong> - Text-only logo</li>
+            <li><strong>HORIZONTAL</strong> - Wide format layout</li>
+            <li><strong>STACKED</strong> - Vertical format layout</li>
+          </ul>
+        </div>
+
+        <div class="guideline-card">
+          <div class="guideline-icon">+</div>
+          <h3>COLOR MODES</h3>
+          <ul>
+            <li><strong>FULL COLOR</strong> - Original brand colors</li>
+            <li><strong>FOR DARK BG</strong> - Light version for dark backgrounds</li>
+            <li><strong>FOR LIGHT BG</strong> - Dark version for light backgrounds</li>
+            <li><strong>MONO BLACK</strong> - Single color black</li>
+            <li><strong>MONO WHITE</strong> - Single color white</li>
+          </ul>
+        </div>
+
+        <div class="guideline-card">
+          <div class="guideline-icon">+</div>
+          <h3>QUALITY STANDARDS</h3>
+          <ul>
+            <li><strong>OFFICIAL LOGOS ONLY</strong> - No recreations or fan art</li>
+            <li><strong>TRANSPARENT BACKGROUND</strong> - Required for all uploads</li>
+            <li><strong>CURRENT VERSION</strong> - Up-to-date brand assets</li>
+            <li><strong>CLEAN SVG</strong> - Optimized, no hidden layers</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="notice-brutal notice-brutal--info">
+        <div class="notice-icon">i</div>
+        <div class="notice-content">
+          <h3>REVIEW PROCESS</h3>
+          <p>All submissions are reviewed by our team within 24-48 hours. We verify the logo authenticity and quality before publishing.</p>
+        </div>
+      </div>
+
+      <div class="cta-box">
+        <span>READY TO CONTRIBUTE?</span>
+        <a href="/submit" class="btn-brutal btn-brutal--yellow">SUBMIT A LOGO →</a>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- SUPPORT -->
+  <section class="docs-section docs-section--dark">
+    <div class="docs-container">
+      <div class="support-content">
+        <h2>NEED HELP?</h2>
+        <p>Having trouble with the API or have questions about integration?</p>
+        <div class="support-links">
+          <a href="mailto:support@assetpipe.dev" class="btn-brutal btn-brutal--outline">
+            CONTACT SUPPORT →
+          </a>
+          <a href="https://github.com/assetpipe/assetpipe" class="btn-brutal btn-brutal--outline">
+            VIEW ON GITHUB →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  /* DOCS HEADER */
+  .docs-header {
+    background: var(--brutal-yellow);
+    padding: var(--space-xxl) var(--space-lg);
+    border-bottom: var(--border-thick) solid var(--brutal-black);
+  }
+
+  .docs-header__content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .docs-header__title {
+    margin-bottom: var(--space-lg);
+  }
+
+  .docs-header__title h1 {
+    font-size: clamp(3rem, 10vw, 6rem);
+    line-height: 0.9;
+    margin-top: var(--space-md);
+  }
+
+  .docs-header__desc {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* DOCS CONTAINER */
+  .docs-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+  }
+
+  /* DOCS SECTIONS */
+  .docs-section {
+    padding: var(--space-xxl) 0;
+    border-bottom: var(--border-thick) solid var(--brutal-black);
+  }
+
+  .docs-section--dark {
+    background: var(--brutal-black);
+    color: var(--brutal-white);
+  }
+
+  .docs-section--cream {
+    background: var(--brutal-cream);
+  }
+
+  .docs-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  .section-number {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    background: var(--brutal-black);
+    color: var(--brutal-white);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .docs-section--dark .section-number {
+    background: var(--brutal-yellow);
+    color: var(--brutal-black);
+  }
+
+  .docs-section-header h2 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+  }
+
+  .docs-intro {
+    font-size: 1.1rem;
+    margin-bottom: var(--space-xl);
+    max-width: 700px;
+  }
+
+  .docs-subheading {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-md);
+    letter-spacing: 0.05em;
+  }
+
+  /* QUICKSTART */
+  .docs-quickstart {
+    background: var(--brutal-cream);
+    padding: var(--space-xxl) 0;
+    border-bottom: var(--border-thick) solid var(--brutal-black);
+  }
+
+  .quickstart-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+
+  .quickstart-step {
+    display: flex;
+    gap: var(--space-md);
+  }
+
+  .step-number {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--brutal-black);
+    opacity: 0.3;
+  }
+
+  .step-content h3 {
+    font-size: 1rem;
+    margin-bottom: var(--space-xs);
+  }
+
+  .step-content p {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: var(--space-sm);
+  }
+
+  /* INFO CARDS */
+  .info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+
+  .info-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: var(--space-lg);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .info-card__label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-bottom: var(--space-xs);
+  }
+
+  .info-card__value {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  /* RATE LIMIT INFO */
+  .rate-limit-info h3 {
+    font-size: 1rem;
+    margin-bottom: var(--space-md);
+  }
+
+  /* DOCS GRID */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .docs-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .docs-content p {
+    margin-bottom: var(--space-lg);
+    line-height: 1.7;
+  }
+
+  .docs-content code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  /* TABLES */
+  .table-brutal {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: var(--space-lg);
+  }
+
+  .table-brutal table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .table-brutal th {
+    background: var(--brutal-black);
+    color: var(--brutal-white);
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    font-weight: 700;
+  }
+
+  .docs-section--dark .table-brutal th {
+    background: var(--brutal-yellow);
+    color: var(--brutal-black);
+  }
+
+  .table-brutal td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .docs-section--dark .table-brutal td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .table-brutal code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    font-size: 0.8rem;
+  }
+
+  .docs-section--dark .table-brutal code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* ENDPOINT CARDS */
+  .endpoint-card {
+    background: var(--brutal-white);
+    border: var(--border-thick) solid var(--brutal-black);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .method-tag {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .method-tag--get {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .method-tag--post {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .endpoint-path {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .endpoint-desc {
+    color: #666;
+    margin-bottom: var(--space-lg);
+  }
+
+  .endpoint-details h4 {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-sm);
+    color: #666;
+  }
+
+  /* BADGES */
+  .required-badge {
+    background: var(--brutal-yellow);
+    font-size: 0.625rem;
+    padding: 2px 6px;
+    font-weight: 700;
+  }
+
+  .status-badge {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    font-weight: 700;
+  }
+
+  .status-badge--400 { background: #fef3c7; color: #92400e; }
+  .status-badge--401 { background: #fee2e2; color: #991b1b; }
+  .status-badge--403 { background: #fee2e2; color: #991b1b; }
+  .status-badge--404 { background: #e0e7ff; color: #3730a3; }
+  .status-badge--429 { background: #fce7f3; color: #9d174d; }
+  .status-badge--500 { background: #fee2e2; color: #991b1b; }
+
+  /* GUIDELINES */
+  .guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+
+  .guideline-card {
+    background: var(--brutal-white);
+    border: var(--border-thick) solid var(--brutal-black);
+    padding: var(--space-lg);
+  }
+
+  .guideline-icon {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--brutal-yellow);
+    margin-bottom: var(--space-sm);
+  }
+
+  .guideline-card h3 {
+    font-size: 1rem;
+    margin-bottom: var(--space-md);
+  }
+
+  .guideline-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .guideline-card li {
+    font-size: 0.875rem;
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .guideline-card li:last-child {
+    border-bottom: none;
+  }
+
+  /* CTA BOX */
+  .cta-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    background: var(--brutal-black);
+    color: var(--brutal-white);
+    padding: var(--space-lg) var(--space-xl);
+    margin-top: var(--space-xl);
+  }
+
+  .cta-box span {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+  }
+
+  @media (max-width: 600px) {
+    .cta-box {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  /* SUPPORT */
+  .support-content {
+    text-align: center;
+    padding: var(--space-xl) 0;
+  }
+
+  .support-content h2 {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .support-content p {
+    opacity: 0.8;
+    margin-bottom: var(--space-lg);
+  }
+
+  .support-links {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .docs-section--dark .btn-brutal--outline {
+    border-color: var(--brutal-white);
+    color: var(--brutal-white);
+  }
+
+  .docs-section--dark .btn-brutal--outline:hover {
+    background: var(--brutal-white);
+    color: var(--brutal-black);
+  }
+</style>
