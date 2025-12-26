@@ -108,12 +108,6 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { createBrowserClient } from '@supabase/ssr';
-
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
-
   const tabs = document.querySelectorAll('.auth-tab');
   const loginForm = document.getElementById('login-form');
   const signupForm = document.getElementById('signup-form');
@@ -141,14 +135,25 @@ import Layout from '../layouts/Layout.astro';
     const email = (document.getElementById('login-email') as HTMLInputElement).value;
     const password = (document.getElementById('login-password') as HTMLInputElement).value;
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (error) {
-      alert(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      window.location.href = '/dashboard';
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Login failed');
       submitBtn.disabled = false;
       submitBtn.textContent = 'LOGIN';
-    } else {
-      window.location.href = '/dashboard';
     }
   });
 
@@ -162,14 +167,25 @@ import Layout from '../layouts/Layout.astro';
     const email = (document.getElementById('signup-email') as HTMLInputElement).value;
     const password = (document.getElementById('signup-password') as HTMLInputElement).value;
 
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, name }),
+      });
 
-    if (error) {
-      alert(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+
+      alert('CHECK YOUR EMAIL FOR CONFIRMATION LINK');
       submitBtn.disabled = false;
       submitBtn.textContent = 'CREATE ACCOUNT';
-    } else {
-      alert('CHECK YOUR EMAIL FOR CONFIRMATION LINK');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Signup failed');
       submitBtn.disabled = false;
       submitBtn.textContent = 'CREATE ACCOUNT';
     }

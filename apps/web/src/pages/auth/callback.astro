@@ -1,0 +1,16 @@
+---
+// Use the supabase client from middleware - it has the correct cookie handlers
+const supabase = Astro.locals.supabase;
+
+const code = Astro.url.searchParams.get('code');
+const next = Astro.url.searchParams.get('next') || '/dashboard';
+
+if (code) {
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (!error) {
+    return Astro.redirect(next);
+  }
+}
+
+return Astro.redirect('/login?error=auth_callback_error');
+---

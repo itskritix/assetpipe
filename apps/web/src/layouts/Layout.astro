@@ -1,5 +1,6 @@
 ---
 import '../styles/brutalist.css';
+import { isAdmin } from '../lib/config';
 
 interface Props {
   title: string;
@@ -8,6 +9,10 @@ interface Props {
 }
 
 const { title, description = 'Open-source platform for company logos and brand assets', theme = 'light' } = Astro.props;
+
+// Get user from middleware (server-side, already validated)
+const user = Astro.locals.user;
+const isUserAdmin = user?.email ? isAdmin(user.email) : false;
 ---
 
 <!doctype html>
@@ -41,19 +46,24 @@ const { title, description = 'Open-source platform for company logos and brand a
             <span class="nav-link__number">03</span>
             <span class="nav-link__text">API</span>
           </a>
-          <a href="/admin" id="admin-link" class="nav-link nav-link--hidden">
-            <span class="nav-link__number">04</span>
-            <span class="nav-link__text">ADMIN</span>
-          </a>
+          {isUserAdmin && (
+            <a href="/admin" class="nav-link">
+              <span class="nav-link__number">04</span>
+              <span class="nav-link__text">ADMIN</span>
+            </a>
+          )}
         </div>
 
         <div class="nav-auth">
-          <a href="/login" id="login-link" class="btn-brutal btn-brutal--outline">
-            ENTER →
-          </a>
-          <a href="/dashboard" id="dashboard-link" class="btn-brutal nav-link--hidden">
-            DASHBOARD
-          </a>
+          {user ? (
+            <a href="/dashboard" class="btn-brutal">
+              DASHBOARD
+            </a>
+          ) : (
+            <a href="/login" class="btn-brutal btn-brutal--outline">
+              ENTER →
+            </a>
+          )}
         </div>
       </nav>
 
@@ -96,7 +106,8 @@ const { title, description = 'Open-source platform for company logos and brand a
             </ul>
           </div>
           <div class="footer-col footer-col--highlight">
-            <h3 class="footer-heading">BUILT WITH</h3>
+            <h3 class="footer-heading">BUILT BY</h3>
+            <a href="https://twitter.com/itskritix" target="_blank" rel="noopener noreferrer" class="footer-author">@ITSKRITIX ↗</a>
             <p class="footer-tech">ASTRO + CLOUDFLARE + SUPABASE</p>
           </div>
         </div>
@@ -287,11 +298,27 @@ const { title, description = 'Open-source platform for company logos and brand a
     color: var(--brutal-white);
   }
 
-  .footer-tech {
+  .footer-author {
+    display: inline-block;
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     letter-spacing: 0.05em;
+    color: var(--brutal-black);
+    text-decoration: none;
+    transition: all 0.1s ease;
+    margin-bottom: var(--space-sm);
+  }
+
+  .footer-author:hover {
+    color: var(--brutal-red);
+  }
+
+  .footer-tech {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
     line-height: 1.2;
+    opacity: 0.6;
   }
 
   .footer-bottom {
@@ -366,29 +393,3 @@ const { title, description = 'Open-source platform for company logos and brand a
   }
 </style>
 
-<script>
-  import { createClient } from '@supabase/supabase-js';
-  import { isAdmin } from '../lib/config';
-
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-  const loginLink = document.getElementById('login-link');
-  const dashboardLink = document.getElementById('dashboard-link');
-  const adminLink = document.getElementById('admin-link');
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    loginLink?.classList.add('nav-link--hidden');
-    dashboardLink?.classList.remove('nav-link--hidden');
-
-    if (isAdmin(user.email)) {
-      adminLink?.classList.remove('nav-link--hidden');
-    }
-  } else {
-    loginLink?.classList.remove('nav-link--hidden');
-    dashboardLink?.classList.add('nav-link--hidden');
-  }
-</script>
