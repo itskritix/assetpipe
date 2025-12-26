@@ -182,11 +182,11 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { createBrowserClient } from '@supabase/ssr';
 
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -205,6 +205,18 @@ import Layout from '../layouts/Layout.astro';
   let selectedFiles: FileWithVariant[] = [];
   let currentUser: { id: string } | null = null;
   let isSubmitting = false;
+
+  // Helper to get color mode hint text
+  function getColorModeHint(mode: string): string {
+    const hints: Record<string, string> = {
+      'color': '→ Original brand colors',
+      'dark': '→ Light logo for dark backgrounds',
+      'light': '→ Dark logo for light backgrounds',
+      'mono-black': '→ Single color black version',
+      'mono-white': '→ Single color white version',
+    };
+    return hints[mode] || '';
+  }
 
   // Check auth status
   async function checkAuth() {
@@ -304,11 +316,12 @@ import Layout from '../layouts/Layout.astro';
               <label>COLOR</label>
               <select class="select-brutal select-brutal--small color-mode-select" data-index="${index}">
                 <option value="color" ${item.colorMode === 'color' ? 'selected' : ''}>FULL COLOR</option>
-                <option value="dark" ${item.colorMode === 'dark' ? 'selected' : ''}>DARK BG</option>
-                <option value="light" ${item.colorMode === 'light' ? 'selected' : ''}>LIGHT BG</option>
+                <option value="dark" ${item.colorMode === 'dark' ? 'selected' : ''}>FOR DARK BG</option>
+                <option value="light" ${item.colorMode === 'light' ? 'selected' : ''}>FOR LIGHT BG</option>
                 <option value="mono-black" ${item.colorMode === 'mono-black' ? 'selected' : ''}>MONO BLACK</option>
                 <option value="mono-white" ${item.colorMode === 'mono-white' ? 'selected' : ''}>MONO WHITE</option>
               </select>
+              <span class="color-mode-hint" data-index="${index}">${getColorModeHint(item.colorMode)}</span>
             </div>
           </div>
         </div>
@@ -327,7 +340,11 @@ import Layout from '../layouts/Layout.astro';
     document.querySelectorAll('.color-mode-select').forEach((select) => {
       select.addEventListener('change', (e) => {
         const index = parseInt((e.target as HTMLSelectElement).dataset.index || '0');
-        selectedFiles[index].colorMode = (e.target as HTMLSelectElement).value;
+        const newValue = (e.target as HTMLSelectElement).value;
+        selectedFiles[index].colorMode = newValue;
+        // Update the hint text
+        const hint = document.querySelector(`.color-mode-hint[data-index="${index}"]`);
+        if (hint) hint.textContent = getColorModeHint(newValue);
       });
     });
 

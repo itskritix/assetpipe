@@ -2060,6 +2060,13 @@ a:hover {
   color: #666;
 }
 
+.color-mode-hint {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: #888;
+  margin-top: 2px;
+}
+
 .select-brutal--small {
   font-family: var(--font-mono);
   font-size: 0.75rem;

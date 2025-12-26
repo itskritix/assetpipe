@@ -78,11 +78,11 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { createBrowserClient } from '@supabase/ssr';
 
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
   const form = document.getElementById('signup-form');
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
