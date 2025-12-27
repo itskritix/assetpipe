@@ -1,38 +1,72 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { isAdmin } from '../../lib/config';
 
 const supabase = Astro.locals.supabase;
-const { data: { user } } = await supabase.auth.getUser();
+const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect('/login');
 }
 
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('role')
-  .eq('id', user.id)
-  .single();
-
-if (profile?.role !== 'admin') {
+// Check if user is admin using email list
+if (!isAdmin(user.email)) {
   return Astro.redirect('/dashboard');
 }
 
 const status = Astro.url.searchParams.get('status') || 'pending';
 
-const { data: submissions } = await supabase
+const { data: submissions } = await supabase!
   .from('submissions')
   .select('id, company_name, company_domain, status, created_at, user_id, submission_files(id, format, variant_type, color_mode, storage_path)')
   .eq('status', status)
   .order('created_at', { ascending: true });
 
-const { data: stats } = await supabase
+// Generate signed URLs for all submission files
+interface SubmissionWithUrls {
+  id: string;
+  company_name: string;
+  company_domain: string | null;
+  status: string;
+  created_at: string;
+  user_id: string;
+  submission_files: Array<{
+    id: string;
+    format: string;
+    variant_type: string;
+    color_mode: string;
+    storage_path: string;
+    signedUrl?: string;
+  }>;
+}
+
+const submissionsWithUrls: SubmissionWithUrls[] = [];
+if (submissions) {
+  for (const sub of submissions) {
+    const filesWithUrls = [];
+    for (const file of sub.submission_files || []) {
+      const { data: signedData } = await supabase!.storage
+        .from('submissions')
+        .createSignedUrl(file.storage_path, 3600);
+      filesWithUrls.push({
+        ...file,
+        signedUrl: signedData?.signedUrl || '',
+      });
+    }
+    submissionsWithUrls.push({
+      ...sub,
+      submission_files: filesWithUrls,
+    });
+  }
+}
+
+const { data: stats } = await supabase!
   .from('submissions')
   .select('status');
 
-const pendingCount = stats?.filter(s => s.status === 'pending').length || 0;
-const approvedCount = stats?.filter(s => s.status === 'approved').length || 0;
-const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
+const pendingCount = stats?.filter((s: { status: string }) => s.status === 'pending').length || 0;
+const approvedCount = stats?.filter((s: { status: string }) => s.status === 'approved').length || 0;
+const rejectedCount = stats?.filter((s: { status: string }) => s.status === 'rejected').length || 0;
 ---
 
 <Layout title="Review Submissions">
@@ -82,8 +116,8 @@ const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
       </div>
 
       <section class="review-list">
-        {submissions && submissions.length > 0 ? (
-          submissions.map(sub => (
+        {submissionsWithUrls.length > 0 ? (
+          submissionsWithUrls.map((sub) => (
             <div class="review-card" data-id={sub.id}>
               <div class="review-card__header">
                 <div>
@@ -94,9 +128,9 @@ const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
               </div>
 
               <div class="review-card__files">
-                {sub.submission_files?.map(file => (
+                {sub.submission_files?.map((file) => (
                   <div class="review-file">
-                    <img src={file.storage_path} alt={`${file.variant_type} ${file.color_mode}`} class="review-preview" />
+                    <img src={file.signedUrl || ''} alt={`${file.variant_type} ${file.color_mode}`} class="review-preview" />
                     <div class="file-meta">
                       <span class="file-format">{file.format.toUpperCase()}</span>
                       <span class="file-variant">{file.variant_type.toUpperCase()}</span>
@@ -133,8 +167,35 @@ const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
   document.querySelectorAll('.approve-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).dataset.id;
-      const { error } = await supabase.from('submissions').update({ status: 'approved' }).eq('id', id);
-      if (!error) location.reload();
+      const button = btn as HTMLButtonElement;
+
+      button.disabled = true;
+      button.textContent = 'PROCESSING...';
+
+      try {
+        const response = await fetch('/api/admin/approve-submission', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ submissionId: id }),
+          credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          window.toast?.success('Submission approved! Company and logos created.');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          window.toast?.error(result.error || 'Failed to approve');
+          button.disabled = false;
+          button.textContent = 'APPROVE';
+        }
+      } catch (error) {
+        console.error('Approval error:', error);
+        window.toast?.error('Failed to approve submission');
+        button.disabled = false;
+        button.textContent = 'APPROVE';
+      }
     });
   });
 
@@ -142,7 +203,12 @@ const rejectedCount = stats?.filter(s => s.status === 'rejected').length || 0;
     btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).dataset.id;
       const { error } = await supabase.from('submissions').update({ status: 'rejected' }).eq('id', id);
-      if (!error) location.reload();
+      if (!error) {
+        window.toast?.success('Submission rejected');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        window.toast?.error('Failed to reject');
+      }
     });
   });
 </script>

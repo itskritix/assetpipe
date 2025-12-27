@@ -11,8 +11,8 @@ bucket_name = "assetpipe-logos"
 # KV namespace for rate limiting
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
-id = "your-kv-namespace-id"
-preview_id = "your-preview-kv-namespace-id"
+id = "241f7405a5a041a1937b48c6cc8a8f56"
+preview_id = "241f7405a5a041a1937b48c6cc8a8f56"
 
 # Environment variables (set via wrangler secret)
 # SUPABASE_URL

@@ -75,6 +75,9 @@ const isUserAdmin = user?.email ? isAdmin(user.email) : false;
       </div>
     </header>
 
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
     <!-- MAIN CONTENT -->
     <main>
       <slot />
@@ -393,3 +396,59 @@ const isUserAdmin = user?.email ? isAdmin(user.email) : false;
   }
 </style>
 
+<script is:inline>
+  // Global Toast Notification System
+  window.toast = function(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const icons = {
+      success: '✓',
+      error: '✕',
+      warning: '!',
+      info: '→'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.innerHTML = `
+      <span class="toast__icon">${icons[type] || icons.info}</span>
+      <span class="toast__message">${message}</span>
+      <button class="toast__close" aria-label="Close">✕</button>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.add('toast--visible');
+    });
+
+    // Close button handler
+    const closeBtn = toast.querySelector('.toast__close');
+    closeBtn.addEventListener('click', () => dismissToast(toast));
+
+    // Auto dismiss
+    if (duration > 0) {
+      setTimeout(() => dismissToast(toast), duration);
+    }
+
+    function dismissToast(toastEl) {
+      toastEl.classList.remove('toast--visible');
+      toastEl.classList.add('toast--exiting');
+      setTimeout(() => {
+        if (toastEl.parentNode) {
+          toastEl.parentNode.removeChild(toastEl);
+        }
+      }, 200);
+    }
+
+    return toast;
+  };
+
+  // Convenience methods
+  window.toast.success = (msg, duration) => window.toast(msg, 'success', duration);
+  window.toast.error = (msg, duration) => window.toast(msg, 'error', duration);
+  window.toast.warning = (msg, duration) => window.toast(msg, 'warning', duration);
+  window.toast.info = (msg, duration) => window.toast(msg, 'info', duration);
+</script>

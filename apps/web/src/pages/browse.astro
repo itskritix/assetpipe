@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
+import { getStorageUrl } from '../lib/supabase';
 
 interface Logo {
   id: string;
@@ -18,10 +18,11 @@ interface Company {
   logos: Logo[];
 }
 
+const supabase = Astro.locals.supabase;
 const searchQuery = Astro.url.searchParams.get('q') || '';
 const format = Astro.url.searchParams.get('format') || '';
 
-const { data } = await supabase
+const { data } = await supabase!
   .from('companies')
   .select(`
     id,
@@ -114,7 +115,7 @@ const totalCount = companies?.length || 0;
             <div class="logo-card__preview">
               {company.logos && company.logos[0] ? (
                 <img
-                  src={company.logos[0].storage_path}
+                  src={getStorageUrl('logos', company.logos[0].storage_path)}
                   alt={company.name}
                   loading="lazy"
                 />

@@ -7,7 +7,7 @@ type Database = import('@assetpipe/shared').Database;
 
 declare namespace App {
   interface Locals {
-    supabase: SupabaseClient<Database>;
+    supabase: SupabaseClient<Database> | null;
     user: User | null;
   }
 }
@@ -19,4 +19,16 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+// Toast notification interface
+interface Toast {
+  success: (message: string) => void;
+  error: (message: string) => void;
+  warning: (message: string) => void;
+  info: (message: string) => void;
+}
+
+interface Window {
+  toast?: Toast;
 }

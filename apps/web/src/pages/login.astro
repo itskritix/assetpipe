@@ -151,7 +151,7 @@ import Layout from '../layouts/Layout.astro';
 
       window.location.href = '/dashboard';
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Login failed');
+      window.toast.error(error instanceof Error ? error.message : 'LOGIN FAILED');
       submitBtn.disabled = false;
       submitBtn.textContent = 'LOGIN';
     }
@@ -181,11 +181,11 @@ import Layout from '../layouts/Layout.astro';
         throw new Error(data.error || 'Signup failed');
       }
 
-      alert('CHECK YOUR EMAIL FOR CONFIRMATION LINK');
+      window.toast.success('CHECK YOUR EMAIL FOR CONFIRMATION LINK');
       submitBtn.disabled = false;
       submitBtn.textContent = 'CREATE ACCOUNT';
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Signup failed');
+      window.toast.error(error instanceof Error ? error.message : 'SIGNUP FAILED');
       submitBtn.disabled = false;
       submitBtn.textContent = 'CREATE ACCOUNT';
     }

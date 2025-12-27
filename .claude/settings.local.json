@@ -8,7 +8,24 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(git add:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(pnpm deploy:api:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm exec wrangler:*)",
+      "Bash(pnpm add:*)",
+      "Bash(set \"PUBLIC_SUPABASE_URL=https://sdsvrkeceeebmcgpungt.supabase.co\")",
+      "Bash(set \"PUBLIC_SUPABASE_ANON_KEY=sb_publishable_2R4SkvUMho1l5VHXLRBQuA_oRIifqS0\")",
+      "Bash(findstr:*)",
+      "Bash(dir d:assetpipeappswebdist_worker.js /b)",
+      "Bash(dir:*)",
+      "Bash(sort:*)",
+      "Bash(curl:*)",
+      "Bash(git -C \"d:\\\\assetpipe\" status)",
+      "Bash(git -C \"d:\\\\assetpipe\" diff --cached)",
+      "Bash(git -C \"d:\\\\assetpipe\" diff)",
+      "Bash(git -C \"d:\\\\assetpipe\" log --oneline -5)",
+      "Bash(git -C \"d:\\\\assetpipe\" add .claude/settings.local.json apps/api/wrangler.toml apps/web/astro.config.mjs apps/web/src/env.d.ts apps/web/src/layouts/Layout.astro apps/web/src/lib/supabase.ts apps/web/src/middleware.ts apps/web/src/pages/admin/index.astro apps/web/src/pages/admin/submissions.astro apps/web/src/pages/browse.astro \"apps/web/src/pages/company/[slug].astro\" apps/web/src/pages/dashboard/api-keys.astro apps/web/src/pages/login.astro apps/web/src/pages/submit.astro apps/web/src/styles/brutalist.css package.json pnpm-lock.yaml DEVELOPMENT.md apps/web/wrangler.toml apps/web/src/pages/api/admin/approve-submission.ts)"
     ]
   }
 }

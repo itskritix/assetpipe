@@ -273,10 +273,10 @@ import Layout from '../layouts/Layout.astro';
           };
           selectedFiles.push(fileWithVariant);
         } else {
-          alert(`${file.name} is too large. Max size is 5MB.`);
+          window.toast.warning(`${file.name} IS TOO LARGE. MAX SIZE IS 5MB.`);
         }
       } else {
-        alert(`${file.name} is not a valid file type. Only SVG and PNG are allowed.`);
+        window.toast.warning(`${file.name} IS NOT A VALID FILE TYPE. ONLY SVG AND PNG ARE ALLOWED.`);
       }
     }
     renderFileList();
@@ -372,7 +372,7 @@ import Layout from '../layouts/Layout.astro';
     }
 
     if (selectedFiles.length === 0) {
-      alert('Please select at least one logo file.');
+      window.toast.warning('PLEASE SELECT AT LEAST ONE LOGO FILE.');
       return;
     }
 
@@ -427,11 +427,13 @@ import Layout from '../layouts/Layout.astro';
         if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
       });
 
-      alert('SUBMISSION SUCCESSFUL! YOUR LOGO WILL BE REVIEWED BY OUR TEAM.');
-      window.location.href = '/dashboard/submissions';
+      window.toast.success('SUBMISSION SUCCESSFUL! YOUR LOGO WILL BE REVIEWED BY OUR TEAM.');
+      setTimeout(() => {
+        window.location.href = '/dashboard/submissions';
+      }, 1500);
     } catch (error) {
       console.error('Submission error:', error);
-      alert('FAILED TO SUBMIT. PLEASE TRY AGAIN.');
+      window.toast.error('FAILED TO SUBMIT. PLEASE TRY AGAIN.');
       isSubmitting = false;
       submitBtn.disabled = false;
       submitBtn.textContent = 'SUBMIT FOR REVIEW →';

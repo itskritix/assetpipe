@@ -1,0 +1,13 @@
+name = "assetpipe"
+pages_build_output_dir = "./dist"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+
+# KV namespace for Astro sessions
+[[kv_namespaces]]
+binding = "SESSION"
+id = "980158940bd940b4a60220d50f50ae7e"
+
+[vars]
+PUBLIC_SUPABASE_URL = "https://sdsvrkeceeebmcgpungt.supabase.co"
+PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_2R4SkvUMho1l5VHXLRBQuA_oRIifqS0"

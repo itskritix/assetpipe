@@ -1,44 +1,39 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { isAdmin } from '../../lib/config';
 
 const supabase = Astro.locals.supabase;
-const { data: { user } } = await supabase.auth.getUser();
+const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect('/login');
 }
 
-// Check if user is admin (you would need an admin check in production)
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('role')
-  .eq('id', user.id)
-  .single();
-
-if (profile?.role !== 'admin') {
+// Check if user is admin using email list
+if (!isAdmin(user.email)) {
   return Astro.redirect('/dashboard');
 }
 
-const { data: pendingSubmissions } = await supabase
+const { data: pendingSubmissions } = await supabase!
   .from('submissions')
   .select('id, company_name, created_at, user_id')
   .eq('status', 'pending')
   .order('created_at', { ascending: true })
   .limit(10);
 
-const { data: stats } = await supabase
+const { data: stats } = await supabase!
   .from('submissions')
   .select('status');
 
-const { count: companiesCount } = await supabase
+const { count: companiesCount } = await supabase!
   .from('companies')
   .select('*', { count: 'exact', head: true });
 
-const { count: logosCount } = await supabase
+const { count: logosCount } = await supabase!
   .from('logos')
   .select('*', { count: 'exact', head: true });
 
-const pendingCount = stats?.filter(s => s.status === 'pending').length || 0;
+const pendingCount = stats?.filter((s: { status: string }) => s.status === 'pending').length || 0;
 const totalSubmissions = stats?.length || 0;
 ---
 

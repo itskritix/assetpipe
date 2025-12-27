@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { supabase } from '../../lib/supabase';
+import { getStorageUrl } from '../../lib/supabase';
 
 interface Logo {
   id: string;
@@ -33,13 +33,14 @@ interface Company {
   brand_kits: BrandKit[];
 }
 
+const supabase = Astro.locals.supabase;
 const { slug } = Astro.params;
 
 if (!slug) {
   return Astro.redirect('/404');
 }
 
-const { data } = await supabase
+const { data } = await supabase!
   .from('companies')
   .select(`
     id,
@@ -139,7 +140,7 @@ const brandKit = company.brand_kits?.[0];
           <div class={`logo-item-brutal ${logo.variant_type === 'primary' ? 'logo-item-brutal--primary' : ''}`}>
             <div class="logo-item__preview">
               <img
-                src={logo.storage_path}
+                src={getStorageUrl('logos', logo.storage_path)}
                 alt={`${company.name} ${logo.variant_type} ${logo.color_mode}`}
                 loading="lazy"
               />
@@ -159,7 +160,7 @@ const brandKit = company.brand_kits?.[0];
               </div>
 
               <a
-                href={logo.storage_path}
+                href={getStorageUrl('logos', logo.storage_path)}
                 download={`${company.slug}-${logo.variant_type}-${logo.color_mode}.${logo.format}`}
                 class="btn-brutal btn-brutal--yellow logo-download"
               >

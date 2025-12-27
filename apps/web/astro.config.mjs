@@ -10,7 +10,7 @@ export default defineConfig({
   integrations: [tailwind()],
   vite: {
     ssr: {
-      external: ['@supabase/supabase-js'],
+      noExternal: ['@supabase/supabase-js', '@supabase/ssr'],
     },
   },
 });

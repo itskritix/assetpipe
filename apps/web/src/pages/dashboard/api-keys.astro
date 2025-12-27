@@ -243,7 +243,7 @@ const { data: apiKeys } = await supabase
     });
 
     if (error) {
-      alert('Failed to create API key: ' + error.message);
+      window.toast.error('FAILED TO CREATE API KEY: ' + error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'CREATE KEY';
       return;
@@ -277,11 +277,12 @@ const { data: apiKeys } = await supabase
         .eq('id', keyId);
 
       if (error) {
-        alert('Failed to revoke key: ' + error.message);
+        window.toast.error('FAILED TO REVOKE KEY: ' + error.message);
         return;
       }
 
-      window.location.reload();
+      window.toast.success('API KEY REVOKED');
+      setTimeout(() => window.location.reload(), 1000);
     });
   });
 </script>
