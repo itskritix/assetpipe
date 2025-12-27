@@ -184,6 +184,7 @@ a:hover {
   font-size: 1rem;
   padding: var(--space-md);
   background: var(--brutal-white);
+  color: var(--brutal-black);
   border: var(--border-thick) solid var(--brutal-black);
   outline: none;
   width: 100%;
