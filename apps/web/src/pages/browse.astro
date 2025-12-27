@@ -22,26 +22,30 @@ const supabase = Astro.locals.supabase;
 const searchQuery = Astro.url.searchParams.get('q') || '';
 const format = Astro.url.searchParams.get('format') || '';
 
-const { data } = await supabase!
-  .from('companies')
-  .select(`
-    id,
-    name,
-    slug,
-    domain,
-    logos (
-      id,
-      format,
-      variant_type,
-      color_mode,
-      storage_path
-    )
-  `)
-  .ilike('name', searchQuery ? `%${searchQuery}%` : '%')
-  .order('name')
-  .limit(50);
+let companies: Company[] | null = null;
 
-const companies = data as Company[] | null;
+if (supabase) {
+  const { data } = await supabase
+    .from('companies')
+    .select(`
+      id,
+      name,
+      slug,
+      domain,
+      logos (
+        id,
+        format,
+        variant_type,
+        color_mode,
+        storage_path
+      )
+    `)
+    .ilike('name', searchQuery ? `%${searchQuery}%` : '%')
+    .order('name')
+    .limit(50);
+
+  companies = data as Company[] | null;
+}
 const totalCount = companies?.length || 0;
 ---
 

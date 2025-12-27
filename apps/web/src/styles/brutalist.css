@@ -652,6 +652,7 @@ a:hover {
   position: absolute;
   background: var(--brutal-yellow);
   border: var(--border-thick) solid var(--brutal-black);
+  pointer-events: none;
 }
 
 .hero-decoration--1 {
@@ -672,6 +673,8 @@ a:hover {
 }
 
 .search-brutal {
+  position: relative;
+  z-index: 20;
   background: var(--brutal-black);
   color: var(--brutal-white);
   padding: var(--space-xxl) var(--space-lg);
