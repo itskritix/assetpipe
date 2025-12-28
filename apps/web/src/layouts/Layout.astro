@@ -5,10 +5,9 @@ import { isAdmin } from '../lib/config';
 interface Props {
   title: string;
   description?: string;
-  theme?: 'light' | 'dark';
 }
 
-const { title, description = 'Open-source platform for company logos and brand assets', theme = 'light' } = Astro.props;
+const { title, description = 'Open-source platform for company logos and brand assets' } = Astro.props;
 
 // Get user from middleware (server-side, already validated)
 const user = Astro.locals.user;
@@ -21,10 +20,11 @@ const isUserAdmin = user?.email ? isAdmin(user.email) : false;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#f5f0e8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | ASSETPIPE</title>
   </head>
-  <body class={theme === 'dark' ? 'theme-dark' : ''}>
+  <body>
     <!-- BRUTAL HEADER -->
     <header class="header-brutal">
       <nav class="nav-brutal">
@@ -55,6 +55,12 @@ const isUserAdmin = user?.email ? isAdmin(user.email) : false;
         </div>
 
         <div class="nav-auth">
+          <!-- Theme Toggle -->
+          <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">☀</span>
+            <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">☾</span>
+          </button>
+
           {user ? (
             <a href="/dashboard" class="btn-brutal">
               DASHBOARD
@@ -341,35 +347,6 @@ const isUserAdmin = user?.email ? isAdmin(user.email) : false;
     font-variant-numeric: tabular-nums;
   }
 
-  /* DARK THEME VARIANT */
-  .theme-dark {
-    background: var(--brutal-black);
-    color: var(--brutal-white);
-  }
-
-  .theme-dark .header-brutal {
-    background: var(--brutal-black);
-    border-color: var(--brutal-white);
-  }
-
-  .theme-dark .logo-text {
-    color: var(--brutal-white);
-  }
-
-  .theme-dark .logo-accent {
-    background: var(--brutal-white);
-    color: var(--brutal-black);
-  }
-
-  .theme-dark .nav-link__text {
-    color: var(--brutal-white);
-  }
-
-  .theme-dark .marquee-brutal {
-    background: var(--brutal-yellow);
-    color: var(--brutal-black);
-  }
-
   /* RESPONSIVE */
   @media (max-width: 1024px) {
     .nav-links {
@@ -451,4 +428,77 @@ const isUserAdmin = user?.email ? isAdmin(user.email) : false;
   window.toast.error = (msg, duration) => window.toast(msg, 'error', duration);
   window.toast.warning = (msg, duration) => window.toast(msg, 'warning', duration);
   window.toast.info = (msg, duration) => window.toast(msg, 'info', duration);
+</script>
+
+<script is:inline>
+  // Theme Management System
+  (function() {
+    const THEME_KEY = 'assetpipe-theme';
+
+    // Get the preferred theme: localStorage > system preference > light
+    function getPreferredTheme() {
+      const stored = localStorage.getItem(THEME_KEY);
+      if (stored) return stored;
+
+      // Check system preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+
+      return 'light';
+    }
+
+    // Apply theme to document
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+
+      // Update meta theme-color for mobile browsers
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', theme === 'dark' ? '#121212' : '#f5f0e8');
+      }
+    }
+
+    // Toggle between light and dark
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+
+      localStorage.setItem(THEME_KEY, next);
+      applyTheme(next);
+    }
+
+    // Initialize theme immediately to prevent flash
+    applyTheme(getPreferredTheme());
+
+    // Set up toggle button when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggle = document.getElementById('theme-toggle');
+      if (toggle) {
+        toggle.addEventListener('click', toggleTheme);
+      }
+    });
+
+    // Listen for system preference changes
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        // Only auto-switch if user hasn't manually set a preference
+        if (!localStorage.getItem(THEME_KEY)) {
+          applyTheme(e.matches ? 'dark' : 'light');
+        }
+      });
+    }
+
+    // Expose for external use
+    window.theme = {
+      toggle: toggleTheme,
+      set: function(theme) {
+        localStorage.setItem(THEME_KEY, theme);
+        applyTheme(theme);
+      },
+      get: function() {
+        return document.documentElement.getAttribute('data-theme') || 'light';
+      }
+    };
+  })();
 </script>
